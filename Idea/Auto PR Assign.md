@@ -1,0 +1,1 @@
+1. [[CODEOWNER를 이용하여 Auto Assign 생성하기]]
