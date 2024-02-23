@@ -1,4 +1,13 @@
+---
+title: Jest Test Environment에 대하여
+date: 2024-02-22 23:11 +0900
+categories: "[post, jest]"
+tags: 
+image:
+---
 [[Jest Test Environment]]
+
+
 
 ![[jest-logo 1.webp]]
 
@@ -21,7 +30,7 @@
 
 이에 대한 해답은 21년 작성된 [Jest 27: New Defaults for Jest, 2021 edition](https://jestjs.io/blog/2021/05/25/jest-27#flipping-defaults)에서 찾을 수 있다.
 
-해당 글에 따르면 v26 까지의 Jest는 `jsdom`을 기본 테스트 환경으로 사용하고 있었다는 것을 알 수 있다. 하지만 이러한 기본 동작이 DOM 과 같은 웹 브라우저 환경을 사용하지 않는 Node Application에 있어서는 개발자도 모르는 퍼포먼스 오버헤드를 발생시킬 수 있기 때문에 기본 테스트 환경을 `node` 변경하게 되었다고 한다.
+해당 글에 따르면 v26 까지의 Jest는 `jsdom`을 기본 테스트 환경으로 사용하고 있었다는 것을 알 수 있다. 하지만 이러한 기본 동작이 DOM 과 같은 웹 브라우저 환경을 사용하지 않는 Node Application에 있어서는 개발자도 모르는 퍼포먼스 오버헤드를 발생시킬 수 있기 때문에 기본 테스트 환경을 `node`로 변경하게 되었다고 한다.
 
 [[jsdom과 node 성능 비교]]
 
@@ -32,6 +41,4 @@ Jest팀에서는 이러한 퍼포먼스적 이유에서 DOM 환경을 필요로 
 
 ## Conclusion
 테스트 환경에 대해서 찾아보면서 `jsdom`을 이용하는 것이 `node`에 비해 상당한 퍼포먼스 오버헤드를 발생시킨다는 것을 알게되었다. 이후 `jsdom`이 얼마나 큰 오버헤드를 발생시키는지 벤치마크를 만들어보면 두 환경의 차이를 더욱 분명히 알 수 있을 것 같다. 또한 `node`를 기본 테스트 환경으로 구성하고 docblocks을 부분적으로 이용하는 방식이 얼마나 큰 성능적 이점을 얻을 수 있는지 테스트해본다면 좋을 것이다.
-
-[[jsdom과 node 성능 비교]]
  
