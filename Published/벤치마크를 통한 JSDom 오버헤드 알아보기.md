@@ -1,3 +1,10 @@
+---
+title: 벤치마크를 통한 JSDom 오버헤드 알아보기
+date: 2024-02-27 15:23 +0900
+categories: "[post, jsdom]"
+tags: 
+image:
+---
 ![[jsdom.webp]]
 
 [[Jest Test Environment에 대하여]] 에서  `node`와 `jsdom`에 대하여 비교하면서 `jsdom`을 이용하는 것이 많은 퍼포먼스 오버헤드를 발생시킨다는 것을 알게 되었다. 이후 이러한 오버헤드를 직접 측정할 수 있다면 좋겠다는 생각에 방법을 찾던 중, **[JSDom benchmark](https://github.com/jsdom/jsdom/tree/main/benchmark)** 를 찾게 되었고 이를 통해 개인 환경에서 오버헤드를 살펴볼 수 있게 되었다.
