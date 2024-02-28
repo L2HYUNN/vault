@@ -222,3 +222,10 @@ it('renders homepage unchanged', () => {
   expect(container).toMatchSnapshot()
 })
 ```
+
+[Jest configuration](https://jestjs.io/docs/configuration)
+
+![[jest-config-ts-error.png]]
+
+> [!tip]
+> To read TypeScript configuration files Jest requires [`ts-node`](https://npmjs.com/package/ts-node). Make sure it is installed in your project.
