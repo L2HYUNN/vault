@@ -239,3 +239,127 @@ globalStyle(`${parent} a[href]`, {
 });
 ```
 
+### Circular Selectors
+만약 `selectors`가 서로 의존되어 있다면, `getters`를 사용하여 그들을 정의할 수 있다.
+
+```tsx
+// styles.css.ts
+import { style } from '@vanilla-extract/css';
+
+export const child = style({
+  background: 'blue',
+  get selectors() {
+    return {
+      [`${parent} &`]: {
+        color: 'red'
+      }
+    };
+  }
+});
+
+export const parent = style({
+  background: 'yellow',
+  selectors: {
+    [`&:has(${child})`]: {
+      padding: 10
+    }
+  }
+});
+```
+
+> [!tip]
+> [[Container Query vs Media Query|Container Query vs Media Query 에 대하여]]
+## Container Queries
+Container Queries는 [media queries](https://vanilla-extract.style/documentation/styling/#media-queries)와 동일하게 동작하며 `@container` key로 감싼다.
+
+> [!warning]
+> 대상으로 하는 브라우저가  [container queries를 지원하는지](https://caniuse.com/css-container-queries) 확인하자. Vanilla Extract는  [container query syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Container_Queries)를 지원하지만 지원되지 않는 브라우저에 기능적 `polyfill`은 아니다.
+
+```tsx
+// styles.css.ts
+import { style } from '@vanilla-extract/css';
+
+const myStyle = style({
+  '@container': {
+    '(min-width: 768px)': {
+      padding: 10
+    }
+  }
+});
+```
+
+ [createContainer](https://vanilla-extract.style/documentation/api/create-container/)를 사용하면 `scoped container`를 생성할 수 있다.
+
+```tsx
+// styles.css.ts
+import {
+  style,
+  createContainer
+} from '@vanilla-extract/css';
+
+const sidebar = createContainer();
+
+const myStyle = style({
+  containerName: sidebar,
+  '@container': {
+    [`${sidebar} (min-width: 768px)`]: {
+      padding: 10
+    }
+  }
+});
+```
+
+```css
+.styles_myStyle__1hiof571 {
+  container-name: styles_sidebar__1hiof570;
+}
+@container styles_sidebar__1hiof570 (min-width: 768px) {
+  .styles_myStyle__1hiof571 {
+    padding: 10px;
+  }
+}
+```
+
+> [!tip]
+[[layer| CSS @layer 이해하기]]
+## Layers
+위의 `media queries`와 마찬가지로, Vanilla Extract는 스타일 정의 내부에 `@layer` key를 사용하여  [layers](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)에 스타일을 지정할 수 있게 해준다.
+
+> [!warning]
+> 대상으로 하는 브라우저가  [layers를 지원하는지](https://caniuse.com/css-cascade-layers) 확인하자. Vanilla Extract는  [layers syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)를 지원하지만 지원되지 않는 브라우저에 기능적 `polyfill`은 아니다.
+
+```tsx
+// styles.css.ts
+import { style } from '@vanilla-extract/css';
+
+const text = style({
+  '@layer': {
+    typography: {
+      fontSize: '1rem'
+    }
+  }
+});
+```
+
+`@layer` key는 또한 [layer](https://vanilla-extract.style/documentation/api/layer/) API를 통해 생성되는 제한된 레이어 참조를 허용한다.
+
+```tsx
+// styles.css.ts
+import { style, layer } from '@vanilla-extract/css';
+
+const typography = layer();
+
+const text = style({
+  '@layer': {
+    [typography]: {
+      fontSize: '1rem'
+    }
+  }
+});
+```
+
+> 레이어 관리에 대해서 조금 더 배우려면, [layer](https://vanilla-extract.style/documentation/api/layer/) 그리고 [globalLayer](https://vanilla-extract.style/documentation/global-api/global-layer/)API 문서를 살펴보자.
+
+## Supports Queries
+
+## Fallback Styles
