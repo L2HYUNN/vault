@@ -5,6 +5,9 @@ categories: "[post, error]"
 tags: 
 image:
 ---
+> [!todo]
+> **너무 많은 코드블록 용법 삭제하기 (블로그는 따로 진행되어있음)**
+
 새로운 프로젝트를 시작하면서 `CI`를 설정하던 중 아래와 같은 에러가 발생하였다.
 
 ![[pnpm-locfile-config-mismatch.webp]]
@@ -56,23 +59,26 @@ image:
 > [pnpm v8](https://github.com/orgs/pnpm/discussions/4967)에서 `auto-install-peers`의 기본 값이 `true`로 변경되었다.
 
 > [[auto install peers]]
-### Solution
-먼저 프로젝트를 시작하면서 `pnpm`의 버전 업데이트 소식을 접하게 되었고, 큰 고민 없이 `pnpm` 버전 업데이트를 진행하였다. (아마 이때 v8을 가진 `lockfile`이 생성 되었을 것이다.) 이후 `CI`를 실행 하였을 때 문제가 발생하였다. 
-
-`CI`에서 사용하고 있는 `pnpm`의 버전이 궁금해 찾아보니 v7을 설치하고 있다는 것을 알 수 있었다. 
+### In My Case
+프로젝트를 시작할 때 `pnpm`의 업데이트 소식을 접하게 되면서 곧 바로 `pnpm` 버전 업데이트를 진행하였다. (아마 이때 v8을 가진 `lockfile`이 생성 되었을 것이다.) 이후 `CI`를 실행 하였을 때 위와 같은 문제가 발생하였다. 
+ 
+그동안 찾아본 정보를 종합해보았을 때 현재 프로젝트에 v7과 v8 두 가지 버전의 `pnpm`을 사용중일 것이라고 예측할 수 있다. 현재 `CLI`에서는 v8 버전을 사용하고 있었기 때문에 곧 바로 `CI`에서 사용하고 있는 `pnpm`의 버전을 찾아보았다. 
 
 ![[install-pnpm-action-v7.webp]]
+
+예상했던 대로 `CI`에서는 v7 버전의 `pnpm`을 설치하고 있었다.
 
 > [!check]
 > 현재 프로젝트에 있는 `lockfile`은 v8을 통해 생성 되었기 때문에 `autoInstallPeers`가 `true`로 설정되어 있지만 `CI`에서는 v7을 사용하고 있기 때문에 `autoInstallPeers`가 `false`이어야 한다. 
 
-따라서 이 문제를 근본적으로 해결하기 위해서는 다음의 두 가지 방법을 생각해볼 수 있을 것이다.
+따라서 이 문제를 근본적으로 해결하기 위해서는 다음의 두 가지 방법을 생각해볼 수 있다.
 
 1. `CI`에서 설치하고 있는 `pnpm`의 버전 v8로 변경하기
 2. `.npmrc`를 이용해서 `auto-install-peers=false` 옵션 설정하기
-## Solving
-도움을 받은 [Issue](https://github.com/pnpm/pnpm/issues/6649)에서 많은 사람들이 2번 방식을 사용하고 있어 아래와 같이 `.npmrc`를 추가하여 문제를 해결하였다. 
 
+## Solving
+도움을 받은 [Issue](https://github.com/pnpm/pnpm/issues/6649)에서 많은 사람들이 2번 방식을 사용하고 있어 아래와 같이 `.npmrc`를 추가하여 문제를 해결하였다. 추후에 새로운 프로젝트에서는 `CI`에 있는 `pnpm`의 버전을 v8로 업데이트 하여 사용할 것 같다.
+### How
 ```diff
 // .npmrc
 + auto-install.peers=false
@@ -84,12 +90,14 @@ image:
 + autoInstallPeers: false
 ```
 
+### Result
+
 ![[pnpm-ci-problem-solving.webp|600]]
 
 > [!tip]
 > [ci: fix ci error pnpm/pnpm#6649](https://github.com/L2HYUNN/frontend-info/pull/1/commits/04b23ba3c59a7fb6727938cca33d8dbb129621d7)
 
-추후에 새로운 프로젝트에서는 `CI`에 있는 `pnpm`의 버전을 v8로 업데이트 하여 사용할 것 같다.
+
 
 
 
