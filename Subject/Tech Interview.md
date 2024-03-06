@@ -1,6 +1,11 @@
 ## Frontend
-1. [[SPA vs MPA]]
-2. [[CSR vs SSR ]]
+- [[SPA vs MPA]]
+- [[CSR vs SSR ]]
+- [[Module System]]
+- [[Module Bundler]]
 
 ## Javascript
-1. [[Event Delegation]]
+- [[Event Delegation]]
+- [[Execution Context]]
+
+
