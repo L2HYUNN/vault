@@ -140,21 +140,83 @@ Expected 2 arguments, but got 1.
 > [!info]
 > TypeScript는 타입 에러가 발생할 경우 위와 같이 문제를 찾아준다.
 
+> [!summary]
+> `tsc`를 이용하면 TypeScript 파일을 JavaScript 파일로 컴파일 할 수 있다.
 ## Emitting with Errors
 `type-checking` 코드는 실행할 수 있는 프로그램의 종류를 제한한다. 그렇기에 `type-checker`가 수용할 수 있는 종류를 찾는 것에 대한 트레이드 오프가 있다. 대부분의 경우 괜찮지만 이러한 트레이드오프가 방해가되는 경우가 있다.
 
 예를들어 JavaScript 코드를 TypeScript로 마이그레이션하고 `type-checking` 에러가 발생한다고 상상해보자. 결국 `type-checker`를 위해 코드를 정리하지만 JavaScript 코드는 이미 동작하고 있다. 왜 TypeScript로 변환하면 실행이 중단되는걸까?
 
-그렇기에 TypeScript는 그러한 방해를 하지 않는다. 물론 시간이 지남에 따라 실수에 대해 조금 더 방어적이고 TypeScript가 조금 더 엄격하게 동작하는 것을 원할지도 모른다.  
+그렇기에 TypeScript는 그러한 방해를 하지 않는다. 물론 시간이 지남에 따라 실수에 대해 조금 더 방어적이고 TypeScript가 조금 더 엄격하게 동작하는 것을 원할지도 모른다. 이런 경우  [`noEmitOnError`](https://www.typescriptlang.org/tsconfig#noEmitOnError) 컴파일러 옵션을 사용할 수 있다.
 
+```shell
+tsc --noEmitOnError hello.ts
+```
 
 > [!info] No Emit On Error - `noEmitOnError`
 > 어떤 에러가 발견되었을 때, JavaScript 소스 코드나 소스 맵 혹은 선언 같은 컴파일 결과 파일을 내보내지 않는다.
 > 
-> 이것의 기본값은 `false` 이며, 이것은 모든 에러가 해결되었음을 확인하기 전에 또 다른 환경에 있는 코드 변화에 대한 결과를 볼 수 있는 `watch-like` 환경에서 TypeScript와 함께 더 쉽게 일하게 만들어 준다.
+> 이것의 기본값은 `false` 이며, 이것은 모든 에러가 해결되었음을 확인하기 전에 다른 환경에 있는 코드 변화에 대한 결과를 볼 수 있는 `watch-like`에서 TypeScript와 함께 더 쉽게 일하게 만들어 준다.
 
+> [!summary]
+> `noEmitOnError` 옵션을 활성화하면 에러가 생겼을 때 컴파일 된 JS 파일을 내보내지 않는다.
 
+## Explicit Types
+`type annotations`을 추가하여 분명하게 타입을 명시할 수 있다.
 
+```ts
+function greet(person: string, date: Date) {
+	console.log(`Hello ${person}, today is ${date.toDateString()}!`);
+}
 
+greet("Maddison", Date());
 
+// Argument of type 'string' is not assignable to parameter of type 'Date'.
+```
 
+> `Date()`는 `string`을 반환하므로 `new Date()`를 이용해야한다.
+
+항상 분명한 `type annotations`을 이용해야하는 것은 아니다. 많은 경우 TypeScript는 우리가 명시하지 않은 타입들에 타입 추론을 제공한다.
+
+> [!summary]
+> `type annotations` 을 이용하면 Explicit Types를 추가할 수 있다.
+
+## Erased Types
+위의 TypeScript 코드를 `tsc`를 이용하여 얻은 JavaScript 코드를 살펴보자. 
+
+```js
+"use strict";
+
+function greet(person, date) {
+
+	console.log("Hello ".concat(person, ", today is ").concat(date.toDateString(), "!"));
+
+}
+
+greet("Maddison", new Date());
+```
+
+여기서 두 가지에 주목하자
+1. `person`, `data` 파라미터에 더이상 `type annotations`이 존재하지 않는다.
+2. `template string`이 concat을 이용한 일반 string으로 변경되었다.
+
+두 번째는 나중에 알아보고 첫 번쨰에 집중해보자. `type annotations`은 JavaScript의 기능이 아니기 때문에 수정 없이 TypeScript를 실행할 수 있는 브라우저나 런타임은 거의 없다. 이것이 바로 TypeScript에 컴파일러가 필요한 이유이다.
+
+## Downleveling
+주목할 포인트 두번째에서 `template string`이 일반 string으로 변경되었었다. 왜 그런걸까?
+
+TypeScript는 새로운 혹은 높은 버전의 ECMAScript를 더 오래된 혹은 더 낮은 버전으로 코드를 다시 작성할 수 있다. 우리는 이것을 때때로 `downleveling` 이라고 부른다.
+
+> 기본적으로 TypeScript는 `ES3` 버전의 ECMAScript를 사용한다. [`target`](https://www.typescriptlang.org/tsconfig#target)옵션을 이용하면 다른 버전의 ECMAScript를 이용할 수 있다.
+
+현재의 많은 브라우저들이 `ES5`를 지원하고 있기 때문에 오래된 브라우저의 호환성이 중요하지 않은 경우 안전하게 `ES2015`를 사용할 수 있다.
+
+> [!summary]
+> 타입스크립트는 타입 체크를 위한 타입 정보를 사용하되 컴파일 후 그 타입 정보는 지워지고 코드는 더 오래된 ECMAScript 버전으로 변환된다.
+
+## Strictness
+일부의 사람들은 그들의 프로그램에 일부분을 평가하게 도와주는 느슨한 경험을 기대한다. 이것은 TypeScript의 기본 경험이다. 
+
+이와 대비되게 많은 사람들은 TypeScript가 가능한 많은 유효성 검사를 하는 것을 선호한다. 그리고 이것이 TypeScript가 `strictness` 설정을 제공하는 이유이다.
+
+이러한 strictness 설정은 약간의 추가 작업을 필요로하지만 일반적으로 **장기적으로 볼때 이득**이된다. 그리 좀 더 정확한 검사와 도구를 가능케 한다. 따라서 가능한 새로운 코드베이스는 항상 `strictness` 체크를 이용해야한다.
