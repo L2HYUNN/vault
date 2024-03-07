@@ -26,7 +26,87 @@
 ![[execution-stack.gif]]
 
 ## Execution Context Element
+실행 컨텍스트는 다음의 구성 요소를 가지고 있다.
+- **Lexical Environment**
+- **Variable Environment**
+- **this binding**
 
 ### Lexical Environment
+Lexical Environment는 **변수 및 함수 등의 식별자(identifier) 및 외부 참조에 관한 정보를 가지고 있는 컴포넌트** 이다.
 
-### Va
+Lexical Environment는 다음의 2가지 구성요소를 갖는다.
+- **Environment Record**
+- **Outer Environment Reference**
+
+#### Environment Record
+Environment Record는 식별자에 관한 정보를 가지고 있다.
+
+#### Outer Reference
+Outer Environment Reference는 외부 Lexical Environment를 참조하는 포인터이다. 
+
+```js
+var x = 10;
+ 
+function foo() {
+  var y = 20;
+  console.log(x);
+}
+```
+
+```js
+// Lexical Environment
+globalEnvironment = {
+	environmentRecord = { x: 10 },
+	outer: null
+}
+fooEnvironment = {
+	environmentRecord = { y: 20 },
+	outer: globalEnvironment
+}
+```
+
+### Variable Environment
+Variable Environment는 Lexical Environment와 동일한 성격을 띠지만 **var로 선언된 변수만 저장한다는 점에서 다르다.**
+
+즉, Lexical Environment는 `var` 로 선언된 변수를 제외하고 나머지(`let` 으로 선언되었거나 함수 선언문)를 저장한다.
+
+> [!tip]
+> [Variable Environment vs lexical environment](https://stackoverflow.com/questions/23948198/variable-environment-vs-lexical-environment)
+
+### this binding
+this의 바인딩은 실행 컨텍스트가 생성될 때마다 this 객체에 어떻게 바인딩이 되는지를 나타낸 것이다. 
+
+> [!tip]
+> ES6부터 this의 바인딩이 LexicalEnvironment 안에 있는 EnvironmentRecord 안에서 일어난다는 사실을 기억해두도록 하자.
+
+- **GEC의 경우**
+    - strict mode라면 `undefined` 로 바인딩된다.
+    - 아니라면 글로벌 객체로 바인딩된다. (브라우저에선 window, 노드에선 global)
+- **FEC의 경우**
+    - 해당 함수가 어떻게 호출되었는지에 따라 바인딩된다.
+
+## Phase 
+Environment Context는 다음의 2가지 과정을 건치다.
+
+1. **Creation Phase (생성 단계)**
+2. **Execution Phase (실행 단계)**
+
+### Creation Phase
+Creation Phase는 다시 다음의 3가지 단계로 이루어진다.
+
+1. **Lexical Environment 생성**
+2. **Variable Environment 생성**
+3. **this 바인딩**
+
+> [!danger]
+> 여기서 주의할 점은 생성 단계에 **값이 변수에 매핑되지 않는다는 것**이다.
+
+`var`의 경우 `undefined`로 초기화 되고 `let`, `const`는 아무런 값도 가지지 않는다.
+
+
+
+
+
+
+## Reference
+[Must Know About Frontend / javascript / execution-context](https://github.com/baeharam/Must-Know-About-Frontend/blob/main/Notes/javascript/execution-context.md)
