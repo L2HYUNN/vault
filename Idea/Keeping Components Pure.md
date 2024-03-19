@@ -149,7 +149,20 @@ export default function TeaSet() {
 > 리액트에서 순수 컴포넌트를 확인하기 위한 방법으로 컴포넌트 함수를 두 번 호출한다면, 일반적인 순수 함수를 체크하는 방법에도 동일한 방법을 적용할 수 있지 않을까? (사이드 이팩트 찾기)
 
 ## Local mutation: Your component's little secret
+위의 예시에서, 문제는 랜더링 중에 컴포넌트가 이미 존재하는 변수를 변경한다는 것이었다. 이것은 종종 **"mutation"** 이라고 불리며 조금 두렵게 들릴 수 있다. 순수 함수들은 함수 범위의 밖에 있는 변수들 혹은 함수를 부르기 전에 만들어진 만들어진 객체들을 변경시키지 않는다. - 그것은 함수를 비순수하게 만든다.
 
+그러나, **랜더링 동안 방금 생성된 변수나 객체를 변경하는 것은 완전히 상관없다.** 
+
+예를들어, 하나의 `[]` 배열을 만들고, 그것을 `cups`라는 변수에 할당하고 그 안에 12개의 컵들을 `push` 한다:
+```jsx
+function Cup({ guest }) {
+	return <h2>Tea cup for guest #{guest}</h2>;
+}
+
+export default function TeaGathering() {
+	let cups = [];
+}
+```
 
 
 
