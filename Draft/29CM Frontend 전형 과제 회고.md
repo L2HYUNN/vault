@@ -52,20 +52,17 @@ TODO: 부족한 부분이 많지만 지원이라도 해보자.
 
 Next 13에서 기존의 Page Router가 [**App Router**](https://nextjs.org/docs/app)로 변경 되면서 많은 변화가 있었기 때문에 언제까지 Next의 최신 버전을 사용해보지 않을 수는 없다고 생각했다. 그렇다보니 이번에 새로운 개인 프로젝트를 기획 하면서 Next 14를 사용하려고 계획하고 있던 상황이었다.
 
-이러한 상황 속에서 29CM 개발 팀이 Next 14를 사용하고 있다는 것을 채용공고를 통해 알게 되었고 과제 전형에서 Next 14의 사용을 고려해보게 되었다.
+이러한 상황 속에서 29CM Frontend 팀이 Next 14를 사용하고 있다는 것을 채용공고를 통해 알게 되었고 과제 전형에서 Next 14의 사용을 고려해보게 되었다.
 
 Next를 이용하면 **직관적인 라우팅 시스템, 다양한 랜더링 전략, 캐싱, 이미지와 폰트 최적화** 등 고성능의 웹 어플리케이션을 위한 다양한 기능들을 사용할 수 있기 때문에 Next 사용을 결정하는데는 큰 고민이 없었다. 하지만 App Router의 사용에는 고민이 있었다. 
 
-App Router는 기본적으로 서버 컴포넌트를 사용하기 때문에 이에 대한 충분한 이해가 필요했고 이에 따른 App Router의 전체적인 기능(공유되는 레이아웃, 중첩 라우팅, 로딩 상태, 에러 핸들링등)을 이해할 필요가 있었다. 하지만 그럼에도 서버 컴포넌트가 [다음과 같은 이점](https://nextjs.org/docs/app/building-your-application/rendering/server-components)들을 가지기 때문에 더 나은 성능의 어플리케이션을 만들기 위해 Next 14의 사용을 결정하게 되었다.
+App Router는 기본적으로 [**서버 컴포넌트**](https://www.patterns.dev/react/react-server-components/)를 사용하기 때문에 이에 대한 충분한 이해가 필요했고 이에 따른 App Router의 전체적인 기능(공유되는 레이아웃, 중첩 라우팅, 로딩 상태, 에러 핸들링등)을 이해할 필요가 있었다. 하지만 그럼에도 서버 컴포넌트가 [다음과 같은 이점](https://nextjs.org/docs/app/building-your-application/rendering/server-components)**(Zero Bundle Size, Automatic Code Splitting, Progressive Rendering)** 을 가지기 때문에 더 나은 성능의 어플리케이션을 만들기 위해 Next 14의 사용을 결정하게 되었다.
 
-
-
-
-
-물론 과제 기간동안 새로운 기술을 익혀 적용 하다는 것에 부담이 있었지만 개발 팀에서 사용하고 있는 기술을 과제에 적용한다는 것이 그만큼 가치가 있는 일이라고 생각했다. 또한 App Router에서 많은 변화가 있었기 때문에 이것을 사용할 줄 아는 것과 모르는것에 큰 차이가 있다고 생각했다.
-
+> [!info]
+> 서버 컴포넌트에 대한 자세한 설명은 [다음의 글](https://nextjs.org/docs/app/building-your-application/rendering/server-components)을 참고하자.
  
 #### React-Query 
+Next 14에서 서버 컴포넌트를 도입하면서 서버 컴포넌트를 통해 서버에서 직접 데이터를 요청할 수 있게 되었다. 또한 Next는 기존의 fetch Web API를 확장하여 캐싱과 재검증이 가능하게 만들었다. 
 
 #### Zustand
 
