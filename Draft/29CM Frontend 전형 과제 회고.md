@@ -62,7 +62,18 @@ App Router는 기본적으로 [**서버 컴포넌트**](https://www.patterns.dev
 > 서버 컴포넌트에 대한 자세한 설명은 [다음의 글](https://nextjs.org/docs/app/building-your-application/rendering/server-components)을 참고하자.
  
 #### React-Query 
-Next 14에서 서버 컴포넌트를 도입하면서 서버 컴포넌트를 통해 서버에서 직접 데이터를 요청할 수 있게 되었다. 또한 Next는 기존의 fetch Web API를 확장하여 캐싱과 재검증이 가능하게 만들었다. 
+Next 14에서 서버 컴포넌트를 도입하면서 이를 통해 서버에서 직접 데이터를 요청할 수 있게 되었다. 또한 Next는 기존의 fetch Web API를 확장하여 캐싱(caching)과 재검증(revalidating)이 가능하게 만들었다. 자세한 내용은 아래의 공식 문서에 대한 설명에서 찾아볼 수 있다.
+
+> [!note]
+> [Data Fetching, Caching and Revalidating](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating)
+
+![[react-query-v5.webp|600]]
+
+이러한 상황에서 Next 14에서 React Query를 사용하는 것에 대한 이점을 찾아보기 위해 많은 자료를 찾아보았다. 대부분의 사람들이 Next에서 React Query의 사용이 불필요하다고 이야기하는 것 같았지만 [특별한 경우](https://www.reddit.com/r/nextjs/comments/19d0sar/comment/kj2pdiq/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) (인피니티 스크롤, 폴링) 등을 구현할 때 도움이 될 수 있다고 이야기하는 것 같다.
+
+> [!info]
+> - [# Nextjs 14 Server actions vs React query](https://www.reddit.com/r/nextjs/comments/19d0sar/nextjs_14_server_actions_vs_react_query/)
+> - [# You Might Not Need React Query](https://tkdodo.eu/blog/you-might-not-need-react-query)
 
 #### Zustand
 
