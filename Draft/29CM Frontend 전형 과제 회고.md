@@ -69,13 +69,23 @@ Next 14에서 서버 컴포넌트를 도입하면서 이를 통해 서버에서 
 
 ![[react-query-v5.webp|600]]
 
-이러한 상황에서 Next 14에서 React Query를 사용하는 것에 대한 이점을 찾아보기 위해 많은 자료를 찾아보았다. 대부분의 사람들이 Next에서 React Query의 사용이 불필요하다고 이야기하는 것 같았지만 [특별한 경우](https://www.reddit.com/r/nextjs/comments/19d0sar/comment/kj2pdiq/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) (인피니티 스크롤, 폴링) 등을 구현할 때 도움이 될 수 있다고 이야기하는 것 같다.
+이러한 상황에서 클라이언트 서버 상태 관리를 위해 굳이 React Query를 사용해야 하는지 의문이 생겼고 이러한 의문을 풀기 위해 다양한 자료를 찾아보았다. 
+
+찾아본 자료들에 따르면 Next 14에서 [Server Action](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)이 안정화 되면서 서버에서 모든 데이터를 다룰 수 있기 때문에 React Query의 사용이 불필요하다고 이야기하는 것 같았지만 [특별한 경우](https://www.reddit.com/r/nextjs/comments/19d0sar/comment/kj2pdiq/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) (인피니티 스크롤, 폴링) 등을 구현할 때 도움이 될 수 있다고 이야기하는 것 같았다.
 
 > [!info]
-> - [# Nextjs 14 Server actions vs React query](https://www.reddit.com/r/nextjs/comments/19d0sar/nextjs_14_server_actions_vs_react_query/)
-> - [# You Might Not Need React Query](https://tkdodo.eu/blog/you-might-not-need-react-query)
+> - [Nextjs 14 Server actions vs React query](https://www.reddit.com/r/nextjs/comments/19d0sar/nextjs_14_server_actions_vs_react_query/)
+> - [You Might Not Need React Query](https://tkdodo.eu/blog/you-might-not-need-react-query)
+> - [Why I don't use React-Query and tRPC anymore](https://www.youtube.com/watch?v=51pf_nCJpwg&t=6s)
+
+처음에는 Next에서 이미 데이터 패칭을 위한 충분한 기능들을 제공하고 있기 때문에 React Query를 사용하지 않으려 했다. 하지만 현재 Next의 App Router를 처음 사용한다는 상황을 고려해보았을 때 기존에 이용해왔던 React Query를 이용하여 서버 상태를 관리하는 것이 현재 상황에 맞는 기술 선택이라고 생각했다. 또한 결정적으로 29CM Frontend 팀에서 React Query를 사용하고 있기 때문에 React Query를 사용하기로 결정하였다.
 
 #### Zustand
+이전에 프로젝트를 진행할 때 클라이언트 상태 관리를 위해 주로 [recoil](https://recoiljs.org/ko/)을 사용하고 있었다. 처음 배웠던 상태 관리 라이브러리이기도 했고 가볍고 쉽게 사용할 수 있기 때문에 주력으로 사용했던 것 같다. 한 번즈음은 클라이언트 상태 관리를 비교해보고 장단점을 정리하여 상황에 맞는 라이브러리를 채택할 수 있어야 한다고 생각했는데 이번 기회에 이러한 비교를 해볼 수 있게 된 것 같다.
+
+먼저 이러한 상태 관리로 가장 널리 쓰이는 redux와 같은 라이브러리는 스토어(store) 구성을 위해 많은 보일러 플레이트를 작성해야 되기 때문에 선택지에서 제외하고 생각했다.
+
+아래의 글을 통해 상태 관리 라이브러리들의 특징과 장단점을 쉽게 정리할 수 있었다.
 
 #### MSW
 
