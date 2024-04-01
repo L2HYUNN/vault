@@ -7,8 +7,8 @@
 > 
 > 본 회고는 1부, 2부로 나뉘어 작성되었습니다.
 > 
-> - 1부 - **서류 지원, 과제 기술 선정**
-> - 2부 - **과제 진행 시 고려한 부분, 아쉬운 점**
+> - 1부 - **기술 선정**
+> - 2부 - **고민과 후기**
 
 본격적인 취업 준비를 하기 시작하면서 취업 공고나 정보를 얻을 수 있는 원티드, 프로그래머스, 로켓펀치, 카카오톡 오픈채팅방 등을 확인하는 것이 하루 일과가 되었다.
 
@@ -98,7 +98,10 @@ Next 14에서 서버 컴포넌트를 도입하면서 이를 통해 서버에서 
 
 그렇다면 과제를 위해서는 어떤 라이브러리를 써야할까? 
 
+![[zustand-logo.webp|600]]
+
 많은 고민 끝에 아래와 같은 이유로 [zustand](https://zustand-demo.pmnd.rs/)를 사용하기로 결정하였다. 
+
 ##### 1. 최근 가장 많이 사용되고 있는 상태 관리 라이브러리
 
 ![[zustand-graph.webp|600]]
@@ -241,46 +244,43 @@ const Counter = () => {
 
 따라서 이와 같은 이유에서 클라이언트 상태 관리 라이브러리로 zustand를 결정하게 되었다.
 #### MSW
-프론트엔드 개발 과정에 겪는 가장 큰 불편함 중 하나는 API 개발이 완료되기 전까지 기다려야 하는 상황이 존재한다는 것이다. 이러한 문제를 해결하기 위해 이전에는 단계별로 다음과 같은 방법들을 이용하였다.
+프론트엔드 개발 과정에 겪는 가장 큰 불편함 중 하나는 API 개발이 완료되기 전까지 기다려야 하는 상황이 존재한다는 것이다. 이전에는 이러한 문제를 해결하기 위해 단계별로 다음과 같은 방법들을 이용했다. 
 
 ##### 1. 직접 Mocking 하기
 처음에는 필요한 데이터를 직접 어플리케이션 내부에 Mocking 하여서 사용하는 방법을 이용하였다. JSON 파일을 생성하고 필요한 데이터를 구성하면 되기 때문에 쉽고 빠르게 적용할 수 있는 방법이었다. 
 
 하지만 API 개발이 완료되면 Mocking으로 사용하던 부분을 수정해야하고 HTTP 메소드와 네트워크 응답 상태에 따른 개발을 하기 어렵다는 단점이 존재했다.
 
-##### 2. Mocking 서버 이용하기
-이후에는 [json-server](https://github.com/typicode/json-server/tree/v0)라는 라이브러리를 찾아 직접 Mock 서버를 구성하였다.
+##### 2. Mock 서버 이용하기
+이후에는 [json-server](https://github.com/typicode/json-server/tree/v0)라는 라이브러리를 찾아 직접 Mock 서버를 구성하였다. 이 방법을 이용하면 웹 어플리케이션의 서비스 로직을 수정하지 않아도 된다는 장점이 있었지만, 로컬 환경에서 실행되기 때문에 실제 네트워크 지연 시간이나 에러를 정확히 반영하지 못한다는 한계가 존재하였다.
 
 > [!info]
-> [실제로 Mock 서버를 구성한 프로젝트]()
+> [실제로 json-server를 이용하여 Mock 서버를 구성한 프로젝트](https://github.com/effective-tech-interview/effective-tech-interview-client/tree/dev/mock-server/src)
 
+그렇다고 이러한 한계를 해결하기 위해서 만약 원격 Mock 서버를 따로 구성한다면 환경 구성 작업등에 많은 비용이 들어갈 것이다.
 
- 를 이용하고 있었다.
+##### 3. MSW를 이용하여 Mocking 하기
+위와 같은 한계와 문제를 해결하기 위해 방법을 찾던 중 실제 API를 이용하는 것처럼 네트워크 수준에서 Mocking을 할 수 있는 [MSW(Mock Service Worker)](https://mswjs.io/)를 발견하게 되었다.
 
-#### ETC
+![[msw-github-logo.webp|600]]
 
+MSW(Mock Service Worker)를 간단하게 설명하자면 서버쪽에 요청이 들어왔을 때 네트워크 요청을 가로채서 모의 응답(Mocked Response)를 보내주어 따로 Mock 서버를 구축하지 않아도 네트워크 수준에서 Mocking을 할 수 있는 도구이다.
 
+자세한 설명은 아래의 글들을 참고하자.
 
+> [!info]
+> - [MSW - Getting started](https://mswjs.io/docs/getting-started)
+> - [Mocking으로 생산성까지 챙기는 FE 개발](https://tech.kakao.com/2021/09/29/mocking-fe/)
+> - [Next.js에서 MSW(Mock Service Worker)로 네트워크 Mocking하기](https://oliveyoung.tech/blog/2024-01-23/msw-frontend/)
 
+기존 Mock Server의 장점에 추가적인 서버 구성 없이 실제 네트워크 환경에 가까운 Mocking을 사용할 수 있다는 점에서 MSW 사용을 결정하게 되었다.
 
-채용 공고에 나와있는 기술들을 과제에서 진행하기 위해서는 개인적으로 나에게 3가지 정도의 과제가 있었다.
+#### Storybook, Jest
+채용 공고에 써있던 우대 사항을 보며 혹시나 과제에 녹아낼 수 있는 내용이 있는지 확인해보았고 다음과 같은 두 가지 문구를 발견하게 되었다.
 
+![[29cm-preferential-treatment (1).webp]]
 
+먼저 CDD를 제대로 적용한 것은 아니었지만 이전 프로젝트에서 스토리북을 사용해본적이 있었고 CDD에 대한 관심이 있었기 때문에 이것을 이번 과제에 적용해보기로 했다. 
 
-이런 상황이다보니 과제를 진행하기 위해 어떤 기술들을 사용해야할지 고민이 많았다. 물론 익숙한 것은 이전에 사용했던 기술들이었지만 가능하면 29CM에 사용하고 있는 기술들을 사용해서 과제를 진행하고 싶다는 욕심이 들었다.
+또한 유닛 테스트와 e2e 테스트 또한 작게 나마 이전 프로젝트에서 Jest와 Playwright를 사용해본 경험이 있기 때문에 이를 적극 활용하기로 결정하였다.
 
-
-## 기술적 도전?
-- Hydration Provider
-- Layer Architecture
-- SOLID
-- CDD / TDD
-- MSW
-- axios service
-- code snippets
-- domain
-
-
-## 문제 해결
-
-## 아쉬웠던 부분
