@@ -65,7 +65,7 @@ App Router는 기본적으로 [**서버 컴포넌트**](https://www.patterns.dev
 Next 14에서 서버 컴포넌트를 도입하면서 이를 통해 서버에서 직접 데이터를 요청할 수 있게 되었다. 또한 Next는 기존의 fetch Web API를 확장하여 캐싱(caching)과 재검증(revalidating)이 가능하게 만들었다. 자세한 내용은 아래의 공식 문서에 대한 설명에서 찾아볼 수 있다.
 
 > [!note]
-> [Data Fetching, Caching and Revalidating](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating)
+> - [Data Fetching, Caching and Revalidating](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating)
 
 ![[react-query-v5.webp|600]]
 
@@ -83,15 +83,67 @@ Next 14에서 서버 컴포넌트를 도입하면서 이를 통해 서버에서 
 #### Zustand
 이전에 프로젝트를 진행할 때 클라이언트 상태 관리를 위해 주로 [recoil](https://recoiljs.org/ko/)을 사용하고 있었다. 처음 배웠던 상태 관리 라이브러리이기도 했고 가볍고 쉽게 사용할 수 있기 때문에 주력으로 사용했던 것 같다. 
 
-이와 같은 단순한 이유로 상라이브러리를 사용하고 있다보니 한 번즈음은 클라이언트 상태 관리 라이브러리들을 비교하고 특징과 장단점을 알고 있어야 한다는 생각이 들었다. 그래야 이후에 새로운 프로젝트를 시작할 때 상황에 맞는 라이브러리를 결정할 수 있
+이와 같은 이유로 라이브러리를 사용하고 있다보니 한 번즈음은 클라이언트 상태 관리 라이브러리들을 비교하고 특징과 장단점을 알고 있을 필요성을 느끼게 되었다. 그렇게 해야 이후 다른 프로젝트를 시작하더라도 상황에 맞는 적절한 라이브러리를 선택할 수 있을 거라는 생각 때문이다.
 
-한 번즈음은 클라이언트 상태 관리를 비교해보고 장단점을 정리하여 상황에 맞는 라이브러리를 채택할 수 있어야 한다고 생각했는데 이번 기회에 이러한 비교를 해볼 수 있게 된 것 같다.
+아래의 글들을 통해 각각의 라이브러리들의 특징과 장단점을 쉽게 정리할 수 있었다.
 
+> [!info]
+> - [리액트 상태 관리 라이브러리, 어떤 것을 써야 할까?](https://yozm.wishket.com/magazine/detail/2233/)
+> - [상태관리 라이브러리 비교: Redux vs Recoil vs Zustand vs Jotai](https://velog.io/@iberis/%EC%83%81%ED%83%9C%EA%B4%80%EB%A6%AC-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EB%B9%84%EA%B5%90-Redux-vs-Recoil-vs-Zustand-vs-Jotai)
 
+그렇다면 과제를 위해서는 어떤 라이브러리를 써야할까? 
 
-먼저 이러한 상태 관리로 가장 널리 쓰이는 redux와 같은 라이브러리는 스토어(store) 구성을 위해 많은 보일러 플레이트를 작성해야 되기 때문에 선택지에서 제외하고 생각했다.
+많은 고민 끝에 아래와 같은 이유로 [zustand](https://zustand-demo.pmnd.rs/)를 사용하기로 결정하였다. 
+##### 1. 최근 가장 많이 사용되고 있는 상태 관리 라이브러리
 
-아래의 글을 통해 상태 관리 라이브러리들의 특징과 장단점을 쉽게 정리할 수 있었다.
+![[zustand-graph.webp|600]]
+
+[npm trends](https://npmtrends.com/jotai-vs-mobx-vs-recoil-vs-zustand)를 살펴보면 zustand의 다운로드 수가 타 라이브러리들에 비해 높은 것을 확인할 수 있다.
+
+라이브러리를 결정하는데 있어 중요한 사항 중 하나는 **얼마나 많은 사람들이 해당 라이브러리를 사용하는가** 이다. 참고할 자료가 필요하거나 이슈가 발생했을 때 대응할 수 있는 많은 래퍼런스나 커뮤니티가 존재하기 때문이다.
+
+> [!Caution]
+> [Redux](https://redux.js.org/)는 스토어 구성을 위한 많은 보일러플레이트 필요 등의 이유로 비교군에서 제외하였습니다. 
+
+##### 2. 작은 패키지 사이즈
+
+![[zustand-stats.webp|600]]
+
+라이브러리의 크기는 곧 번들 사이즈에 영향을 주기 때문에 가능한 작은 사이즈의 패키지를 사용하는 것이 좋다.
+
+위의 사진에서 볼 수 있듯 타 라이브러리들에 비해 압도적으로 작은 패키지 사이즈를 가진 것을 알 수 있다.
+
+##### 3. 간단함
+아래와 같이 create를 통해 스토어를 생성하고 이를 가져와 사용하는 것이 전부이기 때문에 낮은 러닝 커브로 간단하게 사용할 수 있다. 
+
+```ts
+import { create } from 'zustand'
+
+type Store = {
+  count: number
+  inc: () => void
+}
+
+const useStore = create<Store>()((set) => ({
+  count: 1,
+  inc: () => set((state) => ({ count: state.count + 1 })),
+}))
+
+function Counter() {
+  const { count, inc } = useStore()
+  return (
+    <div>
+      <span>{count}</span>
+      <button onClick={inc}>one up</button>
+    </div>
+  )
+}
+```
+
+##### 4. 중앙화 / 액션 기반 상태 관리
+zustand를 결정하는데 있어 recoil과 많은 고민이 있었고 아래와 같은 이유에서 결국 zustand를 결정하게 되었습니다.
+
+recoil의 경우 react와 유사한 동작 방식을 가지기 때문에 컴포넌트 안에서 action을 선언하게 됩니다. 이렇게 store와 action이 분리되는 것을 막기 위해서는 커스텀 훅으로 만들어야 하는데 zustand를 이용하면  이것을 store 안에서 한 번에 해결할 수 있기 때문에 응집성 있는 코드를 만들 수 있습니다.
 
 #### MSW
 
