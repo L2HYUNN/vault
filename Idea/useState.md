@@ -142,6 +142,31 @@ function handleClick() {
 
 여기에, `a => a + 1`은 updater 함수이다. 이것은 `pending state`를 가지고 그것으로 부터 `next state`를 계산한다.
 
+React는 updater 함수를 [queue](https://react.dev/learn/queueing-a-series-of-state-updates)에 넣는다. 이후 다음 랜더 동안, 동일한 순서로 그들을 호출한다:
+
+1. `a => a + 1` 은 pending state로 `42`를 받고 next state로 `43`을 반환한다.
+2. `a => a + 1` 은 pending state로 `43`를 받고 next state로 `44`을 반환한다.
+3. `a => a + 1` 은 pending state로 `44`를 받고 next state로 `45`을 반환한다.
+
+더 이상 큐에 있는 updater가 없기 때문에 React는 마지막에 현재 상태로 `45`를 저장한다.
+
+관습적으로, pending state의 인자로 `age`의 `a` 와 같은 상태 변수의 첫 번째 문자를 사용한다. 그러나 `prevAge` 혹은 더욱 분명하게 표현할 수 있는 다른 이름을 사용할 수 있다.
+
+React는 [순수함](https://react.dev/learn/keeping-components-pure)을 증명하기 위해 개발 모드에서 [updater 함수를 두 번 호출](https://react.dev/reference/react/useState#my-initializer-or-updater-function-runs-twice)한다.
+
+> [!question] Is using an updater always preferred?
+> 이전 상태로 부터 계산된 설정의 상태라면 `setAge(a => a + 1)` 과 같은 코드를 항상 작성하도록 권장받았을 수 있다. 그것에 문제는 없지만, 그렇다고 항상 필요한 것은 아니다.
+> 
+> 대부분의 경우에, 두 접근법에 차이는 없다. React는 항상 클릭과 같은 의도적인 유저 액션이 `age` 상태 변수가 다음 클릭전에 업데이트 되는 것을 보장한다. 이것은 click handler 함수가 초기에 "오래된"  `age` 변수를 볼 위험이 없다는 것을 의미한다.
+> 
+> 그러나, 동일한 이벤트에 다수의 업데이트를 발생시키는 경우, undaters는 도움이 될 수 있다. 그들은 또한 상태 변수 자체에 접근하는 것이 불편한 경우(re-render를 최적화 할 때 마주칠지도 모른다) 도움이 될 수 있다.
+> 
+> 만약 간결한 문법 보다 좀 더 일관성 있는 문법을 선호하는 경우, 이전 상태로 부터 계산된 상태의 경우 항상 updater 함수를 사용하는 것이 합리적일 수 있다. 만약 일부 다른 상태 변수로 구성된 이전 상태로 부터 계산하는 경우, 하나의 객체로 그들을 조합하고 [reducer를 사용하기](https://react.dev/learn/extracting-state-logic-into-a-reducer)를 원할 수도 있다.
+
+### Updating objects and arrays in state
+객체나 배열을 상태에 넣어 사용할 수 있다. React에서 상태는 read-only로 다뤄진다. 그렇기에 존재하는 객체를 변경하기 보다 그것을 새로운 것으로 **교체해야만한다**. 예
+
+
 ## Summary
 - `useState`는 컴포넌트에 **상태를 추가**할 수 있는 React Hooks이다.
 
