@@ -164,8 +164,16 @@ export default function TeaGathering() {
 }
 ```
 
+## Where you can cause side effects
+함수형 프로그래밍은 순수함에 크게 의존하지만, 몇몇 포인트, 어딘가, 무언가는 변해야만 한다. 그것은 프로그래밍의 핵심이다. 이것들은 변화시키며 - 화면 업데이트, 애니메이션 시작, 데이터 변경 -  **side effects**라고 불린다. 
 
+React에서 **side effects는 항상 [event handlers](https://react.dev/learn/responding-to-events)에 속해있다.** 비록 event handlers가 컴포넌트 안에 정의되어 있을지라도, 그들은 랜더링 중에 실행되면 안된다. **그렇기에 event handlers는 순수할 필요가 없다.**
 
+> [!info] Why does React care about Purity?
+
+## Recap
+## Summary
+- React의 컴포넌트는 순수해야만한다. 순수한 컴포넌트는 항상 동일한 JSX를 반환하기 때문에 예측 가능한 컴포넌트를 사용할 수 있다. 
 
 
 

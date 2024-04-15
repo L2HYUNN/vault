@@ -164,8 +164,81 @@ React는 [순수함](https://react.dev/learn/keeping-components-pure)을 증명�
 > 만약 간결한 문법 보다 좀 더 일관성 있는 문법을 선호하는 경우, 이전 상태로 부터 계산된 상태의 경우 항상 updater 함수를 사용하는 것이 합리적일 수 있다. 만약 일부 다른 상태 변수로 구성된 이전 상태로 부터 계산하는 경우, 하나의 객체로 그들을 조합하고 [reducer를 사용하기](https://react.dev/learn/extracting-state-logic-into-a-reducer)를 원할 수도 있다.
 
 ### Updating objects and arrays in state
-객체나 배열을 상태에 넣어 사용할 수 있다. React에서 상태는 read-only로 다뤄진다. 그렇기에 존재하는 객체를 변경하기 보다 그것을 새로운 것으로 **교체해야만한다**. 예
+객체나 배열을 상태에 넣어 사용할 수 있다. React에서 상태는 read-only로 다뤄진다. 그렇기에 존재하는 객체를 변경하기 보다 그것을 새로운 것으로 **교체해야만한다**. 예를들어, 만약 상태에 `form` 객체를 가지는 경우, 그것을 변경하면 안된다:
 
+```jsx
+// 🚩 Don't mutate an object in state like this:
+form.firstName = 'Taylor';
+```
+
+대신, 새로운 객체를 만들어 전체 객체를 교체하라: 
+
+```jsx
+// ✅ Replace state with a new object
+setFrom({
+	...form,
+	firstName: 'Taylor'
+});
+```
+
+좀 더 알아보기 위해 [updating objects in state](https://react.dev/learn/updating-objects-in-state)와 [updating arrays in state](https://react.dev/learn/updating-arrays-in-state)를 살펴보자
+
+> **Examples of objects and arrays in state** 살펴보기
+
+### Avoiding recreating the initial state
+React는 초기에 상태를 한 번 저장하고 다음 랜더링에 그것을 무시한다.
+
+```jsx
+function TodoList() {
+	const [todos, setTodos] = useState(createInitialTodos());
+	// ...
+}
+```
+
+비록 `createInitialTodos()`의 결과가 초기 랜더링에만 사용되더라도, 우리는 여전히 이것을 매 랜더링마다 호출하고 있다. 이것은 만약 거대한 배열을 만들거나 값 비싼 연산을 수행하는 경우 비효율적이고 불필요한 자원 낭비를 발생시킬 수 있다.
+
+이것을 해결하기 위해서, `useState` 대신에 **initializer function를 전달**할 수 있다.
+
+```jsx
+function TodoList() {
+	const [todos, setTodos] = useState(createInitialTodos);
+	// ...
+}
+```
+
+함수를 호출한 결과를 반환하는 `createInitialTodos()` 가 아닌 `createInitialTodos` 함수 그 자체를 전달한다는 것에 주목하자. 만약 `useState`에 함수를 전달하는 경우, React는 오직 그것을 초기화 동안만 호출할 것이다.
+
+> React는 [순수함](https://react.dev/learn/keeping-components-pure)을 보장하기 위해 개발 모드에서 [initializers를 두 번 호출](https://react.dev/reference/react/useState#my-initializer-or-updater-function-runs-twice)한다.
+
+>  [**The difference between passing an initializer and passing the initial state directly**](https://react.dev/reference/react/useState#examples-initializer) 예제를 통해 두 개의 코드상 차이를 살펴보자.
+
+### Resetting state with a key
+**컴포넌트에 다른 `key`를 전달함으로써 컴포넌트의 상태를 초기화할 수 있다.**
+
+### Storing information from previous renders
+일반적으로 event handlers에서 상태를 업데이트 시키겠지만, 드믄 경우 랜더링 응답 중 상태를 조정하기를 원할 수도 있다. - 예를 들어, prop이 변화되었을 때 상태 변수를 변화시키고 싶을지 모른다.
+
+대부분의 경우 이것은 불필요하다:
+
+이 패턴은 이해하기 어렵기 때문에 일반적으로 피하는 것이 최선이다. 
+
+## Troubleshooting
+
+### I've updated the state, but loggin gives me the old value
+이것은 [상태가 마치 snapshot 처럼 동작](https://react.dev/learn/state-as-a-snapshot)하기 때문이다.
+### I've updated the state, but the screen doesn't update
+React는 만약 다음 상태가 이전 상태와 `Object.is` 비교에 의해 결정되어 동일한 경우 업데이트를 무시한다. 
+
+이것을 고치기 위해 항상 [그들을 변경하는 것 대신에 상태에 존재하는 객체나 배열을 대체한다는 것](https://react.dev/reference/react/useState#updating-objects-and-arrays-in-state)을 보장해야만 한다.
+### I'm getting an error: "Too many re-renders"
+전형적으로, 이것은 랜더링 중에 무조건적으로 상태를 설정한다는 것을 의미한다. 그래서 컴포넌트는 루프에 들어간다: render, set state, render, set state ... 
+### My initializer or updater function runs twice
+[엄격 모드](https://react.dev/reference/react/StrictMode)에서, React는 한 번 대신에 몇몇 함수를 두 번 호출한다:
+
+이것은 개발 모드에서만 동작하며 [컴포넌트의 순수성을 유지](https://react.dev/learn/keeping-components-pure)하는데 도움을 준다.
+
+**컴포넌트, initializer 그리고 updater 함수들은 순수해야만 한다.** 그렇기에 React는 event handlers를 절대 두 번 호출하지 않는다.
+### I'm trying to set state to a function, but it gets called instead
 
 ## Summary
 - `useState`는 컴포넌트에 **상태를 추가**할 수 있는 React Hooks이다.
@@ -180,5 +253,8 @@ React는 [순수함](https://react.dev/learn/keeping-components-pure)을 증명�
 
 - `flushSync`를 사용하면 re-render 전에 **즉시 DOM을 업데이트**시킬 수 있다.
 
+- 컴포넌트에 다른 `key`를 전달하는 경우 컴포넌트의 상태를 초기화할 수 있다.
+
+## Reference
 - [react.dev - useState](https://react.dev/reference/react/useState)
 - [React Hooks에 취한다 - useState 15분만에 마스터하기 | 리액트 훅스 시리즈](https://www.youtube.com/watch?v=G3qglTF-fFI)
