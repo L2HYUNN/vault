@@ -170,10 +170,23 @@ export default function TeaGathering() {
 React에서 **side effects는 항상 [event handlers](https://react.dev/learn/responding-to-events)에 속해있다.** 비록 event handlers가 컴포넌트 안에 정의되어 있을지라도, 그들은 랜더링 중에 실행되면 안된다. **그렇기에 event handlers는 순수할 필요가 없다.**
 
 > [!info] Why does React care about Purity?
+> 순수 함수를 작성하는 것은 일부의 습관과 규율을 가진다. 하지만 이것은 놀라운 기회를 풀어준다:
+> 
+> - 컴포넌트를 다른 환경에서 실행할 수 있다.
+> - input이 변경되지 않은 컴포넌트의 [랜더링을 스킵](https://react.dev/reference/react/memo)함으로써 성능을 향상시킬 수 있다. 이것은 순수 함수가 항상 동일한 결과를 반환하기 때문에 안전하다. 그래서 그들은 cache에 안전하다.
+> - 깊은 컴포넌트 트리를 랜더링 하는 도중에 일부 데이터가 변경되는 경우, React는 그밖의 render를 마무리하는 것에 시간을 낭비하지 않고 바로 rendering을 재시작한다. 순수함은 언제든 계산을 멈출 수 있어 그것을 안전하게 만든다.
 
 ## Recap
 ## Summary
 - React의 컴포넌트는 순수해야만한다. 순수한 컴포넌트는 항상 동일한 JSX를 반환하기 때문에 예측 가능한 컴포넌트를 사용할 수 있다. 
+
+- Rendering은 언제나 발생할 수 있기 때문에, 컴포넌트들은 랜더링 과정에 서로 의존하지 않아야 한다.
+
+- Rendering에 컴포넌트가 사용하는 어떤 input도 변경하지 말아야 한다. 그것은 props, state, 그리고 context를 포함한다. 화면을 업데이트 하기 위해서는 이전에 존재하는 객체를 변경하는 대신에 `"set" state`를 사용해야 한다.
+
+- 반환하는 JSX에 컴포넌트의 논리를 표현하기 위해 노력하자. "무언가를 변경하는 것"이 필요한 경우 event handler를 통해 그것을 보통 실행할 수 있다. 마지막 수단으로 `useEffect`를 사용할 수 있다.
+
+- React에서 순수한 컴포넌트를 사용하는 것은 컴포넌트를 다른 환경에서 실행할 수 있게 해주며, 랜더링을 스킵할 수 있게 만들어준다. (항상 동일한 결과를 반환하기 때문에 cache에 안전하다)
 
 
 
