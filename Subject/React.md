@@ -6,9 +6,14 @@
 2. [[useEffect]]
 
 
-## Rules
-1. [[Keeping Components Pure]]
+## Rules of React
+1. [[Components and Hooks must be pure]]
+2. [[React calls Components and Hooks]]
+3. [[Rules of Hooks]]
 
+## Learn React
+### Describing the UI
+1. [[Keeping Components Pure]]
 
 ## Post
 1. [[컴포넌트와 순수성]]

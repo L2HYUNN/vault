@@ -376,10 +376,34 @@ useEffect(() => {
 console.log([serverUrl, roomId]);
 ```
 ### My Effect Keeps re-running in an infinite cycle
+만약 Effect가 무한히 반복되고 있다면, 아래의 두 가지는 명확하다:
+
+- Effect는 일부 상태를 업데이트하고 있다.
+- 그 상태는 re-render를 야기하며, 그것은 Effect의 종속성의 변화를 야기한다.
 
 ### My cleanup login runs even though my component didn't unmount
+cleanup 함수는 unmount 동안 동작할 뿐 아니라 종속성 변화에 따른 매 re-render 전에 또한 동작한다. 추가적으로 개발 모드에서 React는 컴포넌트가 마운트된 이후에 즉시 한 번의 setup+cleanup 함수를 실행한다.
 
+```jsx
+useEffect(() => {
+	// 🔴 Avoid: Cleanup logic without corresponding setup logic
+	return () => {
+		doSomething();
+	};
+}, []);
+```
+
+```jsx
+useEffect(() => {
+	const connection = createConnection(serverUrl, roomId);
+	connection.connect();
+	return () => {
+		connection.disconnect();
+	};
+}, [serverUrl, roomId])
+```
 ### My Effect does something visual, and I see a flicker before it runs
+만약 Effect가 브라우저가 [화면을 그리는 것](https://react.dev/learn/render-and-commit#epilogue-browser-paint)을 막아야 한다면, `useEffect`를 `useLayoutEffect`로 교체하자. **이것은 거의 대부분의 Effect에 필요하지 않을 수 있다는 것**에 주목하자.
 
 ## Summary
 - `useEffect`는 **외부의 시스템에 컴포넌트를 동기화 하기 위해서** 사용하는 Hook이다. 여기서 외부 시스템이란 React에 의해 제어되지 않는 코드, 예를들어 timer, event subscription, third-party animation libray 등을 의미한다. **만약 외부 시스템에 연결이 필요하지 않은 경우, 아마도 Effect는 필요하지 않다.**
@@ -392,7 +416,21 @@ console.log([serverUrl, roomId]);
   
   Web API인 `AbortController`를 사용하면 또한 이 문제를 해결할 수 있다. AbortController는 Web 요청을 중단할 수 있는 객체를 제공한다. 따라서 이를 cleanup 단계에 사용함으로써 이전의 (오래된) 요청을 중단하고 최신의 요청의 결과만을 반영할 수 있게된다. (인터넷 익스플로러 에서 사용하지 못하지만 대부분 이것을 사용하지 않기 때문에 유저의 **대역폭(bandwidth)** 을 생각하면 AbortController를 사용하는 것이 더 좋다.)
 
+- Effect에서 직접 Data를 Fetching 하는 것은 Effect가 클라이언트에서만 동작하기 때문에 `network waterfall`에 취약하고 일반적으로 `cache`, `preload` 같은 기능을 사용하지 않는다는 것을 의미한다. 또한 위와 같이 race condition을 해결하기 위한 많은 보일러 플레이트가 필요하다.
+
+- `reactive values`란 컴포넌트 내부에서 사용되는 props, state 그리고 선언된 변수나 함수를 모두 포함한다.
+
+- `reactive dependencies`를 이해하자. 
+  
+  1. 이것에 `reactive value`를 전달하는 경우 종속성의 변화에 따라 initial render와 re-render에 Effect를 실행한다. 
+  
+  2. `empty array`를 전달하는 경우 initial render에만 Effect를 실행한다. 
+  
+  3. 아무것도 전달하지 않는 경우 매 render 마다 Effect를 실행한다.
+
 - `useEffectEvent` Hook을 사용하면 종속성에 명시하지 않고 state나 props 같은 reacting value를 사용할 수 있다.
+
+- Effect로 시각적인 작업을 할 때, **깜빡임(flicker)** 이 발생하는 경우 `useLayoutEffect`를 이용하면 이러한 문제를 해결할 수 있다. 하지만 대부분의 경우는 이것이 필요하지 않으며 사용하게 되더라도 useLayoutEffect가 성능에 문제를 야기할 수 있음을 이해해야 한다.
 
 
 ## Memo
