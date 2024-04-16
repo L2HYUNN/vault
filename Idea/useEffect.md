@@ -94,10 +94,23 @@ function chatRoom({ roomId }) {
 > **만약 외부 시스템에 연결이 필요하지 않은 경우, 아마도 Effect는 필요하지 않다.**
 
 ### Wrapping Effects in custom Hooks
+만약 자주 Effect를 작성해야 한다는 것을 발견하면, 그것은 보통 컴포넌트가 의존하는 공통 동작을 [custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)로 추출할 필요가 있다는 신호이다.
 
 ### Controlling a non-React widget
+때때로, 컴포넌트의 prop 혹은 state에 외부 시스템을 동기화 하고 싶을 수 있다. 
 
 ### Fetching data with Effects
+컴포넌트에 데이터를 가져오기 위해 Effect를 사용할 수 있다.
+
+예제에서 `false`로 초기화 되었다가 cleanup 동안 `true`로 설정되는 `ignore` 변수에 주목하자. 이것은 ["race conditions" 을 겪지 않도록](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect) 보장해준다: 네트워크 응답은 요청을 보낸 것과 다른 순서로 도착할 수 있다. 
+
+Effect에 직접 데이터 패칭을 작성하는 것은 반복적이고 캐싱과 서버 랜더링같은 최적화를 추가하는데 이후에 어려움을 겪게 된다.
+
+> [!note] What are good alternatives to data fetching in Effects?
+> Effect 내부에 `fetch`를 작성하는 것은 특히 완전한 client-side 어플리케이션에서 [data fetch를 위한 인기있는 방법](https://www.robinwieruch.de/react-hooks-fetch-data/)이다. 하지만 이것은 매우 수동적인 접근이며 상당한 단점을 가진다:
+>  
+>  - **Effect는 서버에서 동작하지 않는다.**
+>  - **Effect에서 직접 Fetching 하는 것은 "network waterfalls"를 만들기 쉽다.**
 
 ### Specifying reactive dependencies
 
@@ -121,7 +134,19 @@ function chatRoom({ roomId }) {
 
 ### My cleanup login runs even though my component didn't unmount
 
+### My Effect does something visual, and I see a flicker before it runs
+
 ## Summary
 - `useEffect`는 **외부의 시스템에 컴포넌트를 동기화 하기 위해서** 사용하는 Hook이다. 여기서 외부 시스템이란 React에 의해 제어되지 않는 코드, 예를들어 timer, event subscription, third-party animation libray 등을 의미한다. **만약 외부 시스템에 연결이 필요하지 않은 경우, 아마도 Effect는 필요하지 않다.**
 
 - 컴포넌트가 *Mount* 되면 Effect의 `setup code`가 실행된다. 이후 *Update*가 발생하였을 때, `cleanup code`를 실행하고 다시 `setup code`를 실행하며 컴포넌트가 *UnMount* 되면 마지막으로 `cleanup code`를 실행한다.
+
+- cleanup 함수를 사용하면 `useEffect`를 통해 Data fetching을 할 때 발생하는 **"race condition"** 을 해결할 수 있다. 
+  
+  `boolean flag`를 사용하여 cleanup 시 이전 결과를 사용하지 않도록 하여 "race condition" 문제를 해결할 수 있다. (여전히 다수의 요청이 진행 중이라는 의미에서 race-condition이 남아 있지만, 오직 마지막으로부터 나온 결과만을 사용한다) 
+  
+  Web API인 `AbortController`를 사용하면 또한 이 문제를 해결할 수 있다. AbortController는 Web 요청을 중단할 수 있는 객체를 제공한다. 따라서 이를 cleanup 단계에 사용함으로써 이전의 (오래된) 요청을 중단하고 최신의 요청의 결과만을 반영할 수 있게된다. (인터넷 익스플로러 에서 사용하지 못하지만 대부분 이것을 사용하지 않기 때문에 유저의 **대역폭(bandwidth)** 을 생각하면 AbortController를 사용하는 것이 더 좋다.)
+
+
+## Memo
+- 비교를 위해 `Object.is`를 사용하는 이유? 
