@@ -1,5 +1,9 @@
 ## Hooks
+
+![[hook-flow.png|500]]
+
 1. [[useState]]
+2. [[useEffect]]
 
 
 ## Rules
