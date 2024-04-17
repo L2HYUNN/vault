@@ -50,8 +50,44 @@ const ref = useRef(0);
 - [DOM 요소](https://developer.mozilla.org/docs/Web/API/Element)를 저장하고 조종할 때
 - JSX를 연산할 필요가 없는 다른 객체를 저장할 때
 
+## Best practices for refs
+아래의 규율들을 따르면 컴포넌트를 좀 더 예측 가능하게 만들 것이다:
+
+- **탈출구로써 ref를 다뤄라.**
+- **랜더링 중에 `ref.current` 읽거나 쓰지 말아라**
+
+React state의 한계를 refs에 적용되지 않는다. 예를들어, state는 [매 랜더링마다 snapshot](https://react.dev/learn/state-as-a-snapshot) 처럼 동작하고 [동기적으로 업데이트 하지 않는다.](https://react.dev/learn/queueing-a-series-of-state-updates) 하지만 ref의 current 변수를 변경하는 경우 즉시 변경된다:
+
+```jsx
+ref.current = 5;
+console.log(ref.current); // 5
+```
+
+이것은 ref 자체가 일반적인 자바스크립트 객체이기 때문이다. 그렇기에 그것은 위와 같이 동작한다.
+
+또한 ref를 사용할 때 [변경을 피하는 것](https://react.dev/learn/updating-objects-in-state)에 대해 걱정하지 않아도 된다. 변경시킨 객체가 랜더링에 사용되지 않는 한, React는 ref 혹은 그것의 내용물로 무엇은 하던지 신경쓰지 않는다.
+
+## Refs and the DOM
+우리는 ref에 어떤 변수든 사용할 수 있다는 것을 알고있다. 그러나 ref에 대한 대부분의 흔한 use case는 DOM 요소에 접근하는 것이다.
+
+## Recap
+
+## Try out some challenges
+
+### 1. Fix a broken chat input
+
+### 2. Fix a component failing to re-render
+
+### 3. Fix debouncing
+
+### 4. Read the latest state
+
 ## Summary
 
 - 리랜더링을 발생시키지 않으면서, 랜더링 사이에 상태를 유지하고 싶은 경우 `useRef`를 사용할 수 있다.
 
+- `useRef`는 `useState` 위에 구현될 수 있다. (setter를 사용하지 않는다)
+
 - 랜더링 중에 `current` 변수를 읽거나 쓰지 말아야 한다.
+
+- `useRef`를 사용하는 가장 흔한 경우는 DOM 요소에 접근하는 것이다.

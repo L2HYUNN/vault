@@ -23,7 +23,7 @@
 const ref = useRef(0);
 ```
 
-1. [[Manipulating the DOM with refs]]
+2. [[Manipulating the DOM with refs]]
 	React는 자동으로 render 출력에 맞게 DOM을 업데이트 한다. 그래서 컴포넌트는 그것을 제어하는 것을 필요로 하지 않는다. 하지만 때때로 React에 의해 관리되는 DOM 요소에 접근할 필요가 있을 수 있다. - 예를들어, **node를 포커스**하기 위해, 그것을 **스크롤** 하기 위해, 그것의 **사이즈나 위치를 측정**할 필요가 있을 수 있다. React에서 그것을 하기 위한 내장된 방법은 없다. 그렇기에 DOM node에 ref가 필요할 것이다. 예를들어 버튼을 클릭하는 것은 ref를 사용하여 input을 focus할 것이다:
 
 ```jsx
