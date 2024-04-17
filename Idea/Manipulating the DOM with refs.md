@@ -36,6 +36,7 @@ myRef.current.scrollIntoView();
 
 > [!info] Flushing state updates synchronously with flushSync
 
+## Best practices for DOM manipulation with refs
 ## Summary
 
 - 예측할 수 없는 수 많은 ref를 다루기 위해 [ref callback](https://react.dev/reference/react-dom/components/common#ref-callback)을 사용할 수 있다.
@@ -43,6 +44,12 @@ myRef.current.scrollIntoView();
 - 기본적으로 다른 컴포넌트의 DOM 조작을 막기 위해 ref의 사용이 제한되어 있지만 `forwardRef`를 사용하면 다른 컴포넌트의 DOM에 접근할 수 있다.
 
 - `useRef`를 사용한 DOM 요소 조작에서 제한적인 기능만을 노출시키고 싶다면 `useImperativeHandle`를 사용할 수 있다.
+
+- *render phase* 에는 DOM이 아직 존재하지 않기 때문에 *commit phase*에 `ref`를 설정한다.
+
+- `ref`를 이용하여 React가 관리하고 있는 DOM node를 조작하는 것은 피해야한다. 이것은 예측할 수 없는 충돌을 가져올 수 있으며 이것은 곧 일관되지 않은 시각적 결과를 초래할 수 있다.
+
+- 보통 focusing, scrolling, 혹은 DOM 요소 measuring과 같은 비파괴적인 행위에 `ref`를 사용한다.
 
 
 
