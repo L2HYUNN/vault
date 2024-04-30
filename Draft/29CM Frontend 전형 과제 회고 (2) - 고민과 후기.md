@@ -26,9 +26,78 @@
 이러한 생각을 바탕으로 유지 보수와 확장에 용이한 프로그램을 만들기 위해 아래와 같이 고민하였다.
  
 ### SOLID
-[이전 프로젝트](https://github.com/effective-tech-interview/effective-tech-interview-client)를 통해 잠시나마 실제로 서비스를 운영해 볼 수 있었다.
+[마지막 프로젝트](https://github.com/effective-tech-interview/effective-tech-interview-client)를 통해 잠시나마 실제로 서비스를 운영해 볼 수 있었다.
+    
+첫 배포 이후 운영 과정에서 새로운 요구 사항이 발생하였고 이를 만족하기 위해 기존 기능을 변경하고 새로운 기능을 추가할 필요가 있었다. 금방 끝낼 수 있을거라는 처음의 예상과는 달리 생각 이상의 많은 시간이 소요되었다. 무엇이 문제였을까? 당시 만들었던 버튼 컴포넌트의 제작과정을 살펴보며 문제점을 살펴보자.
 
-이 과정에서 새로운 요구 사항이 발생하였고 이를 만족하기 위한 기능 추가, 수정등의 작업이 발생하였다. 이것을 만족하기 위해 본격적으로 기존 코드를 수정하기 시작하면서 유지 보수에 생각 이상의 많은 비용이 들어간다는 것을 몸소 이해할 수 있었다.
+> [!info]
+> 아래의 링크를 통해 당시 만들었던 Button 컴포넌트 제작 내용을 확인할 수 있다.
+> 
+> - [feat: button 컴포넌트 구현 #6](https://github.com/effective-tech-interview/effective-tech-interview-client/pull/6)
+
+![[first-buton-design.webp|]]
+
+> 초기 버튼 컴포넌트의 디자인
+
+버튼의 모양에 따라 크게 두 가지 버튼으로 나눠볼 수 있고 사용되는 컬러에 따라 또 버튼을 나눠 생각해볼 수 있다. 버튼을 나누는 명확한 컨테스트가 존재하지 않았기 때문에 디자인된 버튼이 가지는 역할과 책임을 뚜렷하게 정의하기 어려웠고 결국 아래와 같은 버튼 컴포넌트를 만들게 되었다.
+
+
+```tsx
+import { css } from '@emotion/react';
+import styled from '@emotion/styled';
+import type { ComponentProps, PropsWithChildren } from 'react';
+
+import type { KeyOfColors } from '~/styles/Theme';
+import { theme } from '~/styles/Theme';
+
+interface ButtonProps extends ComponentProps<'button'> {
+  width?: number;
+  height?: number;
+  color?: KeyOfColors;
+  backgroundColor?: KeyOfColors;
+}
+
+const Button = ({
+  width,
+  height,
+  color,
+  backgroundColor,
+  children,
+  ...rest
+}: PropsWithChildren<ButtonProps>) => {
+  return (
+    <StyledButton
+      width={width}
+      height={height}
+      color={color}
+      backgroundColor={backgroundColor}
+      {...rest}
+    >
+      {children}
+    </StyledButton>
+  );
+};
+
+export default Button;
+
+type ButtonStyleProps = Pick<ButtonProps, 'width' | 'height' | 'color' | 'backgroundColor'>;
+
+const StyledButton = styled('button')<ButtonStyleProps>`
+  ...
+`;
+```
+
+버튼 컴포넌트는 다음과 같은 두 가지 문제점을 가지고 있었다.
+
+#### 역할과 책임
+현재의 버튼 컴포넌트는
+
+
+#### 유지 보수성과 확장성
+
+
+
+이것을 만족하기 위해 본격적으로 기존 코드를 수정하기 시작하면서 유지 보수에 생각 이상의 많은 비용이 들어간다는 것을 몸소 이해할 수 있었다.
 
 
 이러한 경험을 통해 유지 보수가 용이한 프로그램을 만들기 위해 노력하게 된 거 같다. 그리고 이를 만족하기 위해서는 각각의 컴포넌트를 역할과 책임에 따라 명확히 나누고 관리하는 것이 중요하다는 것 또한 알게되었다.
