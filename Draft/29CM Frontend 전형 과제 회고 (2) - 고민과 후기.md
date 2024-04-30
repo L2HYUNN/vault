@@ -28,28 +28,25 @@
 ### SOLID
 [마지막 프로젝트](https://github.com/effective-tech-interview/effective-tech-interview-client)를 통해 잠시나마 실제로 서비스를 운영해 볼 수 있었다.
     
-첫 배포 이후 운영 과정에서 새로운 요구 사항이 발생하였고 이를 만족하기 위해 기존 기능을 변경하고 새로운 기능을 추가할 필요가 있었다. 금방 끝낼 수 있을거라는 처음의 예상과는 달리 생각 이상의 많은 시간이 소요되었다. 무엇이 문제였을까? 당시 만들었던 버튼 컴포넌트의 제작과정을 살펴보며 문제점을 살펴보자.
+첫 배포 이후 운영 과정에서 새로운 요구 사항이 발생하였고 이를 만족하기 위해 기존 기능을 변경하고 새로운 기능을 추가할 필요가 있었다. 금방 끝낼 수 있을거라는 처음의 예상과는 달리 생각 이상의 많은 시간이 소요되었다. 무엇이 문제였을까? 당시 만들었던 버튼 컴포넌트의 제작과정을 잠시 살펴보며 문제점을 알아보자.
 
 > [!info]
-> 아래의 링크를 통해 당시 만들었던 Button 컴포넌트 제작 내용을 확인할 수 있다.
+> 아래의 링크를 통해 당시 만들었던 Button 컴포넌트의 제작 내용을 확인할 수 있다.
 > 
 > - [feat: button 컴포넌트 구현 #6](https://github.com/effective-tech-interview/effective-tech-interview-client/pull/6)
+> - [refactor: button 컴포넌트 리팩토링 #11](https://github.com/effective-tech-interview/effective-tech-interview-client/pull/11)
+> - [feat: question button 구현 #64](https://github.com/effective-tech-interview/effective-tech-interview-client/pull/64)
 
 ![[first-buton-design.webp|]]
 
 > 초기 버튼 컴포넌트의 디자인
 
-버튼의 모양에 따라 크게 두 가지 버튼으로 나눠볼 수 있고 사용되는 컬러에 따라 또 버튼을 나눠 생각해볼 수 있다. 버튼을 나누는 명확한 컨테스트가 존재하지 않았기 때문에 디자인된 버튼이 가지는 역할과 책임을 뚜렷하게 정의하기 어려웠고 결국 아래와 같은 버튼 컴포넌트를 만들게 되었다.
+초기 버튼 컴포넌트는 스타일에 따른 구분만 존재할 뿐 역할과 책임을 가지는 뚜렷한 구분이 존재하지 않았다. 
 
+따라서 처음에는 아래와 같이 `props`를 통해 디자인을 적용할 수 있는 버튼 컴포넌트를 만들게 되었다.
 
 ```tsx
-import { css } from '@emotion/react';
-import styled from '@emotion/styled';
-import type { ComponentProps, PropsWithChildren } from 'react';
-
-import type { KeyOfColors } from '~/styles/Theme';
-import { theme } from '~/styles/Theme';
-
+// Button.tsx
 interface ButtonProps extends ComponentProps<'button'> {
   width?: number;
   height?: number;
@@ -79,35 +76,30 @@ const Button = ({
 };
 
 export default Button;
-
-type ButtonStyleProps = Pick<ButtonProps, 'width' | 'height' | 'color' | 'backgroundColor'>;
-
-const StyledButton = styled('button')<ButtonStyleProps>`
-  ...
-`;
 ```
 
-버튼 컴포넌트는 다음과 같은 두 가지 문제점을 가지고 있었다.
+> [src/components/common/Button/Button.tsx](https://github.com/effective-tech-interview/effective-tech-interview-client/blob/0aa0558b02ebf78ef2ba125423bed55303e71ad1/src/components/common/Button/Button.tsx)
 
-#### 역할과 책임
-현재의 버튼 컴포넌트는
+이와 같이 만든 버튼 컴포넌트는 다음과 같은 **문제점**을 가진다.
 
+현재 버튼 컴포넌트에는 프로젝트의 디자인 시스템이 적용되어 있다. 버튼 컴포넌트는 **도메인**이 적용된 컴포넌트이다. 하지만 도메인에 따른 **역할과 책임**은 배제되어있다. 버튼 컴포넌트의 역햘과 책임은 컴포넌트 자체가 가지는 것이 아닌 컴포넌트를 사용하는 사용자에 의해 결정된다. 
 
-#### 유지 보수성과 확장성
+따라서 버튼 컴포넌의 역할과 책임을 이해하기 위해서는 항상 주변 컨텍스트를 이해해야만한다. 이것은 코드의 가독성을 해치고 생산성을 떨어트린다. 
 
-
-
-이것을 만족하기 위해 본격적으로 기존 코드를 수정하기 시작하면서 유지 보수에 생각 이상의 많은 비용이 들어간다는 것을 몸소 이해할 수 있었다.
-
-
-이러한 경험을 통해 유지 보수가 용이한 프로그램을 만들기 위해 노력하게 된 거 같다. 그리고 이를 만족하기 위해서는 각각의 컴포넌트를 역할과 책임에 따라 명확히 나누고 관리하는 것이 중요하다는 것 또한 알게되었다.
-
-그리고 이러한 깨달음들은 결국 SOLID를 만족하는 것이라는 것을 알게되었다.
-
-이러한 깨달음을 바탕으로 다음과 같은 SOLID를 이번 과제에도 적용하기 위해 노력하였다.
+따라서 이러한 문제를 해결하기 위해서 버튼 컴포넌트가 역할과 책임을 가질 수 있게 해야한다.
 
 > [!info]
+> 버튼 컴포넌트 개선에 대한 상세한 내용은 추후에 따로 작성할 예정이다.
+
+위와 같이 버튼 컴포넌트 개선 과정을 겪으며 컴포넌트의 **역할과 책임**에 대해서 더욱 깊게 고민하기 시작했다. 그리고 곧 이러한 고민이 `SRP(Single Responsibility Principle)`와 닮아있다는 것을 알게 되었다. SRP에 대해 공부하기 시작하면서 자연스럽게 프론트엔드에서의 SOLID에 관심이 가게 되었다.
+
+아래의 글들을 통해 프론트엔드에서의 SOLID에 대해 이해할 수 있었다.
+
+
+> [!tip]
 > - [프론트엔드와 SOLID 원칙](https://fe-developers.kakaoent.com/2023/230330-frontend-solid/)
+
+과제를 진행하며 모든 원칙을 만족하는 코드를 만들 수는 업 적어도 한 가지 원칙 SRP(Single Responsibility Principle)
 
 ### Layer Architecture
 
