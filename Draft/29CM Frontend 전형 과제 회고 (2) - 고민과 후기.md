@@ -91,15 +91,54 @@ export default Button;
 > [!info]
 > 버튼 컴포넌트 개선에 대한 상세한 내용은 추후에 따로 작성할 예정이다.
 
-위와 같이 버튼 컴포넌트 개선 과정을 겪으며 컴포넌트의 **역할과 책임**에 대해서 더욱 깊게 고민하기 시작했다. 그리고 곧 이러한 고민이 `SRP(Single Responsibility Principle)`와 닮아있다는 것을 알게 되었다. SRP에 대해 공부하기 시작하면서 자연스럽게 프론트엔드에서의 SOLID에 관심이 가게 되었다.
+위와 같이 버튼 컴포넌트 개선 과정을 겪으며 컴포넌트의 **역할과 책임**에 대해서 더욱 깊게 고민하기 시작했다. 그리고 곧 이러한 고민이 `SRP(Single Responsibility Principle)`와 닮아있다는 것을 알게 되었다. SRP에 대해 공부하기 시작하면서 자연스럽게 프론트엔드에서의 `SOLID`에 관심이 가게 되었다.
 
-아래의 글들을 통해 프론트엔드에서의 SOLID에 대해 이해할 수 있었다.
-
+아래의 글들을 통해 프론트엔드에서의 `SOLID`에 대해 이해할 수 있었다.
 
 > [!tip]
 > - [프론트엔드와 SOLID 원칙](https://fe-developers.kakaoent.com/2023/230330-frontend-solid/)
+> - [[번역] 그림으로 보는 SOLID 원칙](https://blog.siner.io/2020/06/18/solid-principles/)
+> - [프론트엔드에 SOLID 적용하기](https://kooku0.github.io/blog/%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C%EC%97%90-solid-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0/)
 
-과제를 진행하며 모든 원칙을 만족하는 코드를 만들 수는 업 적어도 한 가지 원칙 SRP(Single Responsibility Principle)
+과제를 진행하며 모든 원칙을 만족하는 코드를 만들 수는 없었지만 적어도 `SRP(Single Responsibility Principle)`를 충실히 따르기 위해 노력했다. 아래는 과제를 진행하며 사용했던 프로젝트의 폴더 구성이다. 
+
+> 과제의 내용이 노출될 수 있는 부분은 **domain**으로 표현하였습니다.
+
+```zsh
+📦src  
+ ┣ 📂apis  
+ ┣ 📂app  
+ ┣ 📂components    
+ ┃ ┣ 📂domain01  
+ ┃ ┣ 📂domain02  
+ ┃ ┣ 📂domain03
+ ┃ ┣ 📂provider  
+ ┃ ┗ 📂ui  
+ ┣ 📂hooks  
+ ┣ 📂mocks  
+ ┣ 📂queries  
+ ┣ 📂services   
+ ┣ 📂stores  
+ ┣ 📂stories  
+ ┣ 📂styles  
+ ┣ 📂types  
+ ┗ 📂utils  
+```
+
+각각의 폴더는 다음과 같은 역할과 책임을 가진다.
+
+- **apis**: Axios를 이용한 데이터 패칭과 관련된 파일을 모아 놓은 디렉토리
+- **app**: 어플리케이션의 page를 모아 놓은 디렉토리 Next의 App Router를 사용시 page를 표현하기 위해 app 디렉토리를 사용해야만 한다. 
+- **components**: 어플리케이션에서 사용하는 모든 컴포넌트를 모아 놓은 디렉토리. 도메인에 구애 받지 않는 UI 컴포넌트는 UI 폴더에, 이것을 이용하여 도메인과 관련된 컴포넌트는 따로 도메인에 맞는 폴더에 모아 놓는다.
+- **hooks**: 어플리케이션의 비지니스 로직을 hook으로 만들어 커스텀 hook을 모아 놓은 디렉토리
+- **mocks**: MSW를 이용한 mock 서버와 관련된 파일을 모아 놓은 디렉토리
+- **queries**: 서버 상태 관리를 위한 React-Query와 관련된 파일을 모아 놓은 디렉토리
+- **services**: 어플리케이션의 비지니스 로직 중 hook이 아닌 파일을 모아 놓은 디렉토리
+- **stores**: 전역 상태 관리를 위한 Zustand와 관련된 파일을 모아 놓은 디렉토리
+- **stories**: Storybook을 이용한 스토리를 모아 놓은 디렉토리 
+- **styles**: 스타일과 관련된 파일을 모아 놓은 디렉토리
+- **types**: 전역 혹은 중복으로 사용되는 타입을 모아 놓은 디렉토리
+- **utils**: 유틸, 핼퍼 함수를 모아 놓은 디렉토리
 
 ### Layer Architecture
 
