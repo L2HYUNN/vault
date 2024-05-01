@@ -141,10 +141,10 @@ export default Button;
 - **types**: 전역 혹은 중복으로 사용되는 타입을 모아 놓은 디렉토리
 - **utils**: 유틸 함수를 모아 놓은 디렉토리
 
-### Layer Architecture
-위와 같은 폴더 구조를 구성한 이유에는 `SRP(Single Responsibility Principle)`를 따르기 위함 뿐 아니라 `Layer Architecture`와도 연관이 있다. 
+### Layered Architecture
+위와 같은 폴더 구조를 구성한 이유에는 `SRP(Single Responsibility Principle)`를 따르기 위함 뿐 아니라 `Layered Architecture`와도 연관이 있다. 
 
-처음 `Layer Architecture`에 관심을 가지게 된 계기는 함수형 프로그래밍을 공부하기 시작하면서부터였다. 당시 [쏙쏙 돌아오는 함수형 코딩](https://product.kyobobook.co.kr/detail/S000001952246)이라는 책을 통해 함수형 프로그래밍에 대해 공부하고 있었는데 여기서 계층형 설계 파트를 통해 소프트웨어를 계층으로 구성하는 Layer Architecture에 대해 알게되었다.
+처음 `Layered Architecture`에 관심을 가지게 된 계기는 함수형 프로그래밍을 공부하기 시작하면서부터였다. 당시 [쏙쏙 돌아오는 함수형 코딩](https://product.kyobobook.co.kr/detail/S000001952246)이라는 책을 통해 함수형 프로그래밍에 대해 공부하고 있었는데 여기서 계층형 설계 파트를 통해 소프트웨어를 계층으로 구성하는 `Layered Architecture`에 대해 알게되었다.
 
 다음의 글들을 통해 Layer Architecture에 대한 이해를 높일 수 있었다.
 
