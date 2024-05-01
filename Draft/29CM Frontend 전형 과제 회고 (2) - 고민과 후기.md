@@ -144,8 +144,13 @@ export default Button;
 ### Layer Architecture
 위와 같은 폴더 구조를 구성한 이유에는 `SRP(Single Responsibility Principle)`를 따르기 위함 뿐 아니라 `Layer Architecture`와도 연관이 있다. 
 
-처음 `Layer Architecture`에 관심을 가지게 된 계기는 함수형 프로그래밍을 공부하기 시작하면서였다. 당시 쏙쏙 돌아오는 함수형 코딩이라는 책을 통해 함수형 프로그래밍에 ㄷ
+처음 `Layer Architecture`에 관심을 가지게 된 계기는 함수형 프로그래밍을 공부하기 시작하면서부터였다. 당시 [쏙쏙 돌아오는 함수형 코딩](https://product.kyobobook.co.kr/detail/S000001952246)이라는 책을 통해 함수형 프로그래밍에 대해 공부하고 있었는데 여기서 계층형 설계 파트를 통해 소프트웨어를 계층으로 구성하는 Layer Architecture에 대해 알게되었다.
 
+다음의 글들을 통해 Layer Architecture에 대한 이해를 높일 수 있었다.
+
+> [!info]
+> - [계층형 아키텍처](https://jojoldu.tistory.com/603)
+> - [쉽게 말하는, 계층형 아키텍처의 문제](https://velog.io/@jay/%EC%89%BD%EA%B2%8C-%EB%A7%90%ED%95%98%EB%8A%94-%EA%B3%84%EC%B8%B5%ED%98%95-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%9D%98-%EB%AC%B8%EC%A0%9C)
 
 함수형 프로그래밍에 대한 관심이 높아지면서 쏙쏙 들어오는 함수형 코딩이라는 책을 통해 함수형 프로그래밍을 공부하게 되었다. 
 
