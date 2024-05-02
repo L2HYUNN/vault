@@ -146,71 +146,89 @@ export default Button;
 
 처음 `Layered Architecture`에 관심을 가지게 된 계기는 함수형 프로그래밍을 공부하기 시작하면서부터였다. 당시 [쏙쏙 돌아오는 함수형 코딩](https://product.kyobobook.co.kr/detail/S000001952246)이라는 책을 통해 함수형 프로그래밍에 대해 공부하고 있었는데 여기서 계층형 설계 파트를 통해 소프트웨어를 계층으로 구성하는 `Layered Architecture`에 대해 알게되었다.
 
-다음의 글들을 통해 Layer Architecture에 대한 이해를 높일 수 있었다.
+이후 다음의 글들을 통해 `Layer Architecture`에 대한 이해를 높일 수 있었다.
 
 > [!info]
 > - [계층형 아키텍처](https://jojoldu.tistory.com/603)
 > - [쉽게 말하는, 계층형 아키텍처의 문제](https://velog.io/@jay/%EC%89%BD%EA%B2%8C-%EB%A7%90%ED%95%98%EB%8A%94-%EA%B3%84%EC%B8%B5%ED%98%95-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%9D%98-%EB%AC%B8%EC%A0%9C)
 
-함수형 프로그래밍에 대한 관심이 높아지면서 쏙쏙 들어오는 함수형 코딩이라는 책을 통해 함수형 프로그래밍을 공부하게 되었다. 
+`Layered Architecture`를 통해 계층화를 하게 되면 **관심사를 분리**할 수 있을 뿐 아니라 각 **모듈 교체**와 **테스트**에서 이점을 가질 수 있다. 이러한 특징 덕분에 유지 보수와 확장성에서 이점을 가질 수 있다고 생각하였고, 다음과 같은 계층을 구성하게 되었다.
+
+```mermaid
+graph TD
+    A["Page Layer"] --> B["Component Layer"]
+    B --> C["Business Layer
+    (Hooks and Services)"]
+    C --> D["Store Layer
+    (Queries and Stores)"]
+    D --> E["Utility Layer
+    (APIs, Utils, Mocks, ...ETC)"]
+```
+
+> 계층 구성에는 다음의 자료를 참고하였다.
 
 > [!info]
 > - [프론트엔드 상태관리 실전 편 with React Query & Zustand [#우아콘2023]](https://youtu.be/nkXIpGjVxWU?si=Imt-rjOH4FVZLJHA)
+
+이러한 계층형 설계를 통해 관심사를 분리하고 이를 통해 `SRP`를 보다 쉽게 지킬 수 있게되었다. 
+
+하지만 과제를 진행하면서 이러한 계층을 보다 엄격히 지키지 못한 것이 아쉬움이 남는다.
 
 ### CDD (Component-Driven Development)
 
 ![[cdd-gif.gif]]
 
-가장 먼저 떠올린 방법은 바로 [CDD(Component-Driven Development)](https://www.chromatic.com/blog/component-driven-development/)를 적용하는 것이었다. 이전 프로젝트 부터 컴포넌트를 바텀-업 방식으로 개발하고 있었다. 이러한 바텀 업 개발 방식은 점진적으로 결합(조립)하는 CDD의 성향과 비슷했기 때문에 큰 어려움 없이 개발을 진행할 수 있으며 전체 페이지가 아닌 하나의 컴포넌트에 집중하여 개발을 진행하기 때문에 각 컴포넌트의 역할과 책임에 대해서만 고민할 수 있게 되었다. 
+계층형 설계를 통해 프로젝트의 구조를 구성한 이후에는 컴포넌트를 어떻게 개발할 것인지 고민하였다. 
 
-UI Test에 대한 이야기
+평소 컴포넌트를 개발할 때에는 주로 바텀-업 방식을 이용하고 있다. 이러한 바텀-업 방식은 점진적으로 결합(조립) 하여 컴포넌트를 개발하기 때문에 관심사를 분리하고 작은 단위의 테스트하기 용이한 컴포넌트를 구성할 수 있게 된다.
 
-코드 스닛펫을 적용한 스토리북 작성
+[Storybook](https://storybook.js.org/)을 이용하면 이러한 바텀-업 방식의 개발 방법에 많은 도움을 받을 수 있으며 자연스럽게 **CDD(Component-Driven Development)** 를 달성할 수 있다. Storybook을 통해 컴포넌트를 개발하게 되면 독립적인 환경에서 각각의 컴포넌트를 테스트할 수 있고 그 결과를 다른 팀원들과 공유할 수 있다. 
 
-실제로 작성한 UI Test 
+> [!info]
+> - [Component-Driven Development | Build UIs in a better way: from the component up](https://www.chromatic.com/blog/component-driven-development/)
 
+이와 같은 
+
+CDD를 통해 각 컴포넌트의 역할과 책임에 대해 고민할 수 있었고 더 나은 컴포넌트를 설계할 수 있게되었다. 또한 Storybook을 통해 각각의 컴포넌트를 테스트해볼 수 있었다.
+
+story를 만드는데에는 많은 보일러플레이트가 필요했기 때문에 아래의 코드 스닛펫을 이용하여 스토리북 작성의 효율성을 높였다.
+
+```json
+{
+	"storybook-template": {
+		"prefix": "sbtemplate", 
+		"scope": "typescriptreact",
+		"body": [
+			"import type { Meta, StoryObj } from '@storybook/react';",
+			"",
+			"import { ${2:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}} } from './${1:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}}';",
+
+			"",
+			"const meta: Meta<typeof ${1:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}}> = {",
+			"  title: '${1:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}}',",
+			"  component: ${1:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}},",
+			"};",
+			"",
+			"export default meta;",
+			"",
+			"type Story = StoryObj<typeof ${1:${TM_FILENAME_BASE/(.*)(.stories)/${1:/pascalcase}/gi}}>;",
+			"",
+			"export const Default: Story = {",
+			"  args: {}",
+			"};",
+			""
+		],
+		"description": "Creates a Storybook story template based on the filename."
+	}
+}
+```
 
 ### TDD (Test-Driven Development)
-
-
-
-
-
-
-
-
-
-
-
-역할과 책임
-선언형 프로그래밍 / 함수형 프로그래밍
-프론트엔드 SOLID
-
-
-
-
-### CDD / TDD 
-먼저 가장 먼저 떠올린 것은 CDD와 TDD 그리고 그 중 CDD 였습니다. CDD를 이용하면 자연스럽게 바텀-업 방식으로 컴포넌트와 페이지를 구성하게 되며 그 과정을 Storybook을 이용하여 눈으로 확인할 수 있기 때문에 좋은 방법이라고 생각했습니다.
-
-CDD를 적용하다 보면 바텀 업 방식으로 작은 컴포넌트부터 설계하기 때문에 하나의 컴포넌트가 가질 책임과 역할에 대해서 보다 깊게 생각할 수 있게 만든다는 것이 큰 장점이었던 것 같습니다. 완전히 일치하지는 않겠지만 Frontend에서 또한 SOLID를 따르는 것이 보다 더 좋은 컴포넌트를 만드는 방법이라고 생각했기 때문에 ~ 
-
-### 
-
-
-## 기술적 도전?
-- Hydration Provider
-- Layer Architecture
-- SOLID
-- CDD / TDD
-- MSW
-- axios service
-- code snippets
-- domain
-
 
 ## 문제 해결
 
 ## 아쉬웠던 부분
 
-
 기존에 사용하지 않았던 많은 기술들을 단시간에 학습하고 적용하려다보니 2일차가 되어서야 본격적으로 과제를 진행할 수 있었다. 또한 Next 14를 사용하면서 많은 버그들에 부딪혔고 이를 해결하는데 많은 시간을 소비해야만 했다. 
+
+TDD
