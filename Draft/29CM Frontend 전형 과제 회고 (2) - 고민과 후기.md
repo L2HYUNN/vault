@@ -91,7 +91,7 @@ export default Button;
 > [!info]
 > 버튼 컴포넌트 개선에 대한 상세한 내용은 추후에 따로 작성할 예정이다.
 
-위와 같이 버튼 컴포넌트의 개선 과정을 겪으며 컴포넌트의 **역할과 책임**에 대해서 깊게 고민하기 시작했다. 그리고 곧 이러한 고민이 `SRP(Single Responsibility Principle)`와 닮아있다는 것을 알게 되었다. SRP에 대해 고민하기 시작하면서 자연스럽게 `SOLID` 원칙에 대해 찾아보게되었다.
+위와 같이 버튼 컴포넌트의 개선 과정을 겪으며 컴포넌트의 **역할과 책임**에 대해서 깊게 고민하기 시작했다. 그리고 곧 이러한 고민이 `SRP(Single Responsibility Principle)`와 닮아있다는 것을 알게 되었다. SRP에 대해 고민하기 시작하면서 자연스럽게 `SOLID` 원칙에 대해 찾아보았다.
 
 아래의 글들을 통해 `SOLID`, 프론트엔드에서의 `SOLID`에 대해 이해할 수 있었다.
 
@@ -100,7 +100,7 @@ export default Button;
 > - [[번역] 그림으로 보는 SOLID 원칙](https://blog.siner.io/2020/06/18/solid-principles/)
 > - [프론트엔드에 SOLID 적용하기](https://kooku0.github.io/blog/%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C%EC%97%90-solid-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0/)
 
-과제를 진행하며 모든 원칙을 만족시킬 수는 없었지만 적어도 `SRP(Single Responsibility Principle)`를 충실히 따르기 위해 노력했다. 아래는 SRP를 지키기위해 가장 먼저 고려했던 프로젝트의 폴더 구조이다. 
+과제를 진행하며 모든 원칙을 만족시킬 수는 없었지만 적어도 `SRP(Single Responsibility Principle)`를 충실히 따르기 위해 노력했다. 아래는 SRP를 지키기위해 가장 먼저 고민했던 프로젝트의 폴더 구조이다. 
 
 > [!info]
 >  과제의 내용이 노출될 수 있는 부분은 **domain**으로 표현하였습니다.
@@ -119,8 +119,7 @@ export default Button;
  ┣ 📂mocks  
  ┣ 📂queries  
  ┣ 📂services   
- ┣ 📂stores  
- ┣ 📂stories  
+ ┣ 📂stores    
  ┣ 📂styles  
  ┣ 📂types  
  ┗ 📂utils  
@@ -136,7 +135,6 @@ export default Button;
 - **queries**: 서버 상태 관리를 위한 `React-Query`와 관련된 파일을 모아 놓은 디렉토리
 - **services**: 어플리케이션의 비지니스 로직 중 hook이 아닌 파일을 모아 놓은 디렉토리
 - **stores**: 전역 상태 관리를 위한 `Zustand`와 관련된 파일을 모아 놓은 디렉토리
-- **stories**: `Storybook`을 이용한 스토리를 모아 놓은 디렉토리 
 - **styles**: 스타일과 관련된 파일을 모아 놓은 디렉토리
 - **types**: 전역 혹은 중복으로 사용되는 타입을 모아 놓은 디렉토리
 - **utils**: 유틸 함수를 모아 놓은 디렉토리
@@ -152,7 +150,7 @@ export default Button;
 > - [계층형 아키텍처](https://jojoldu.tistory.com/603)
 > - [쉽게 말하는, 계층형 아키텍처의 문제](https://velog.io/@jay/%EC%89%BD%EA%B2%8C-%EB%A7%90%ED%95%98%EB%8A%94-%EA%B3%84%EC%B8%B5%ED%98%95-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%9D%98-%EB%AC%B8%EC%A0%9C)
 
-`Layered Architecture`를 통해 계층화를 하게 되면 **관심사를 분리**할 수 있을 뿐 아니라 각 **모듈 교체**와 **테스트**에서 이점을 가질 수 있다. 이러한 특징 덕분에 유지 보수와 확장성에서 이점을 가질 수 있다고 생각하였고, 다음과 같은 계층을 구성하게 되었다.
+`Layered Architecture`를 통해 계층화를 하게 되면 **관심사를 분리**할 수 있을 뿐 아니라 각 **모듈 교체**와 **테스트**에서 이점을 가질 수 있다. 이러한 특징 덕분에 `Layered Architecture`를 사용하는 것이 유지 보수와 확장성에서 이점을 가질 수 있다고 생각하였고, 다음과 같은 계층을 구성하게 되었다.
 
 ```mermaid
 graph TD
@@ -170,28 +168,21 @@ graph TD
 > [!info]
 > - [프론트엔드 상태관리 실전 편 with React Query & Zustand [#우아콘2023]](https://youtu.be/nkXIpGjVxWU?si=Imt-rjOH4FVZLJHA)
 
-이러한 계층형 설계를 통해 관심사를 분리하고 이를 통해 `SRP`를 보다 쉽게 지킬 수 있게되었다. 
-
-하지만 과제를 진행하면서 이러한 계층을 보다 엄격히 지키지 못한 것이 아쉬움이 남는다.
+`Business Layer`에서 `Utility Layer`를 참조하거나 `Component Layer`에서 `Store Layer`를 참조하는 등 `Opened Layer`를 만들어 완벽히 `Layered Architecture`를 따르지는 못했지만 계층을 구성하고 각 계층에 맞는 적절한 함수의 위치를 고민하면서 함수가 가지는 역할과 책임에 대해 더욱 깊게 고민할 수 있게되었다. 
 
 ### CDD (Component-Driven Development)
+계층형 설계를 통해 프로젝트의 구조를 구성한 이후 어떻게 컴포넌트를 개발할 것인지 생각해보았다.
+
+평소 컴포넌트를 개발할 때 주로 바텀-업 방식을 이용한다. 이러한 바텀-업 방식은 점진적으로 결합(조립) 하여 컴포넌트를 개발하기 때문에 관심사를 분리하고 작은 단위의 테스트하기 용이한 컴포넌트를 만들 수 있게 해준다.
 
 ![[cdd-gif.gif]]
 
-계층형 설계를 통해 프로젝트의 구조를 구성한 이후에는 컴포넌트를 어떻게 개발할 것인지 고민하였다. 
-
-평소 컴포넌트를 개발할 때에는 주로 바텀-업 방식을 이용하고 있다. 이러한 바텀-업 방식은 점진적으로 결합(조립) 하여 컴포넌트를 개발하기 때문에 관심사를 분리하고 작은 단위의 테스트하기 용이한 컴포넌트를 구성할 수 있게 된다.
-
-[Storybook](https://storybook.js.org/)을 이용하면 이러한 바텀-업 방식의 개발 방법에 많은 도움을 받을 수 있으며 자연스럽게 **CDD(Component-Driven Development)** 를 달성할 수 있다. Storybook을 통해 컴포넌트를 개발하게 되면 독립적인 환경에서 각각의 컴포넌트를 테스트할 수 있고 그 결과를 다른 팀원들과 공유할 수 있다. 
+[Storybook](https://storybook.js.org/)을 이용하면 이러한 바텀-업 방식의 개발 방법을 적용하여 독립적으로 컴포넌트를 구성할 수 있을 뿐 아니라 자연스럽게 **CDD(Component-Driven Development)** 를 적용할 수 있게 된다. CDD를 통해 각 컴포넌트의 역할과 책임에 대해 고민하고 결과적으로 더 나은 컴포넌트를 설계할 수 있게 되었다.
 
 > [!info]
 > - [Component-Driven Development | Build UIs in a better way: from the component up](https://www.chromatic.com/blog/component-driven-development/)
 
-이와 같은 
-
-CDD를 통해 각 컴포넌트의 역할과 책임에 대해 고민할 수 있었고 더 나은 컴포넌트를 설계할 수 있게되었다. 또한 Storybook을 통해 각각의 컴포넌트를 테스트해볼 수 있었다.
-
-story를 만드는데에는 많은 보일러플레이트가 필요했기 때문에 아래의 코드 스닛펫을 이용하여 스토리북 작성의 효율성을 높였다.
+각 컴포넌트에 대한 story를 만드는데에는 보일러플레이트가 필요했기 때문에 [코드 스닛펫(code snippets)](https://code.visualstudio.com/docs/editor/userdefinedsnippets)을 이용하여 스토리북 작성의 효율성을 높였다.
 
 ```json
 {
@@ -223,7 +214,12 @@ story를 만드는데에는 많은 보일러플레이트가 필요했기 때문�
 }
 ```
 
+### 선언형 프로그래밍 (Declarative Programming)
+코드가 어떻게 동작해야하는지에 대해 설명하는 **명령형 프로그래밍(Imperative Programming)** 과 대비되는 개념인 **선언형 프로그래밍(Declarative Programming)** 은 어떻게(How)가 아닌 무엇(What) 인지에 초점을 맞춘 프로그래밍 방식으로 추상화 수준을 높여 전체적인 코드의 가독성을 높이
+
 ### TDD (Test-Driven Development)
+
+
 
 ## 문제 해결
 
