@@ -215,16 +215,164 @@ graph TD
 ```
 
 ### 선언형 프로그래밍 (Declarative Programming)
-코드가 어떻게 동작해야하는지에 대해 설명하는 **명령형 프로그래밍(Imperative Programming)** 과 대비되는 개념인 **선언형 프로그래밍(Declarative Programming)** 은 어떻게(How)가 아닌 무엇(What) 인지에 초점을 맞춘 프로그래밍 방식으로 추상화 수준을 높여 전체적인 코드의 가독성을 높이
+코드가 어떻게 동작해야하는지에 대해 설명하는 **명령형 프로그래밍(Imperative Programming)** 과 대비되는 개념인 **선언형 프로그래밍(Declarative Programming)** 은 어떻게(How)가 아닌 무엇(What) 인지에 초점을 맞춘 프로그래밍 방식으로 추상화 수준을 높여 전체적인 코드의 가독성을 높일 수 있는 프로그래밍 방법이다.
 
-### TDD (Test-Driven Development)
+> [!info]
+> - [선언형 프로그래밍으로 이해하기 쉬운 코드 작성하기](https://yozm.wishket.com/magazine/detail/2083/)
+
+실제로 React는 이러한 선언형 프로그래밍을 적용하여 상호작용이 많은 UI를 만들 때 생기는 복잡함을 줄이고 캡슐화된 컴포넌트를 통해 쉽게 UI를 만들 수 있게 만들어 준다.
+
+바텀-업 방식으로 컴포넌트를 개발하다 보면 아래에서 만든 컴포넌트를 통해 더욱 큰 컴포넌트 혹은 페이지를 구성하게 된다. 이때 적절한 역할과 책임을 통해 컴포넌트를 나누었다면 아래와 같이 가독성 높은 UI 로직을 구성할 수 있게 된다.
+
+```tsx
+function MainPage() {
+// ...
+return ( 
+	<>
+		<Header />
+		<MainView />
+		<SubView />
+		<Footer />
+	</>
+	);
+}
+```
+
+> 각 컴포넌트가 동일한 추상화 수준을 유지함으로써 더욱 가독성을 높일 수 있다.
+
+실제로 컴포넌트를 합성하여 복잡한 컴포넌트를 구성할 때 레이아웃을 위해 `div` 태그를 통해 스타일을 적용해야하는 상황이 빈번히 발생하게된다. 이러한 경우 아래와 같이 다른 추상화 수준을 가지게 된다.
+
+```tsx
+function MainPage() {
+// ...
+return ( 
+	<>
+		<Header />
+		<div style={...}>
+			<MainView />
+			<SubView />
+		</div>
+		<Footer />
+	</>
+	);
+}
+```
+
+아래와 같이 레이아웃과 관련된 부분을 컴포넌트로 만들면 재사용성을 높일 수 있을 뿐 아니라 동일한 추상화 수준을 통해 가독성 또한 높일 수 있게 된다.
+
+```tsx
+// Flex.tsx
+import { assignInlineVars } from '@vanilla-extract/dynamic';
+import type { PropsWithChildren } from 'react';
+
+import {
+  alignItems,
+  flexDirection,
+  flexStyles,
+  flexWidth,
+  flexWrap,
+  justifyContent,
+} from './Flex.css';
+
+interface FlexProps extends React.HTMLAttributes<HTMLDivElement> {
+  direction?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
+  justify?:
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'space-between'
+    | 'space-around'
+    | 'space-evenly';
+  align?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
+  wrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+  width?: string;
+}
+
+export const Flex = ({
+  children,
+  direction = 'row',
+  justify = 'flex-start',
+  align = 'stretch',
+  wrap = 'nowrap',
+  width = '100%',
+  className: userStyles,
+  ...props
+}: PropsWithChildren<FlexProps>) => {
+  const dynamicStyle = assignInlineVars({
+    [flexWidth]: width,
+    [flexDirection]: direction,
+    [justifyContent]: justify,
+    [alignItems]: align,
+    [flexWrap]: wrap,
+  });
+
+  return (
+    <div className={`${flexStyles} ${userStyles}`} style={{ ...dynamicStyle }} {...props}>
+      {children}
+    </div>
+  );
+};
+
+```
+
+```ts
+// Flex.css.ts
+import { createVar, style } from '@vanilla-extract/css';
+
+export const flexWidth = createVar();
+export const flexDirection = createVar();
+export const justifyContent = createVar();
+export const alignItems = createVar();
+export const flexWrap = createVar();
+
+export const flexStyles = style({
+  display: 'flex',
+  width: flexWidth,
+  flexDirection,
+  justifyContent,
+  alignItems,
+  flexWrap,
+});
+
+```
+
+이렇게 만든 레이아웃 컴포넌트를 이용하면 아래와 같이 가독성 높은 UI 코드를 구성할 수 있다.
+
+```tsx
+function MainPage() {
+// ...
+return ( 
+	<>
+		<Header />
+		<Flex >
+			<MainView />
+			<Space />
+			<SubView />
+		</Flex>
+		<Footer />
+	</>
+	);
+}
+```
+
+## 과제 전형 탈락, 아쉬웠던 부분
+아쉽게도 과제 전형에서 탈락하게 되었다. 
+
+피드백으로 받은 주 원인은 기능 구현에서 발생한 버그들이었다.
+
+피드백 외에 개인적으로 아쉬웠던 부분은 다음과 같다.
+
+### 새로운 기술 사용
+Next14, Zustand, MSW와 같은 기존에 사용하지 않았던 기술들을 단시간에 학습하고 적용하려다보니 과제 2일차가 되어서야 본격적으로 개발을 시작할 수 있었다. Next14와 MSW를 함께 사용하면서 수 많은 문제들에 부딪혔고 이 문제들을 해결하기 위해 이슈와 PR를 확인하는데 많은 시간을 사용해야만 했다. 새로운 기술에 대한 욕심을 조금만 버리고 기능 구현에 집중했더라면 발생한 버그들을 좀 더 잘 해결하고 과제를 제출할 수 있지 않았을까 하는 아쉬움이 남는다.
+
+### 완벽함 추구
+모든 것에 완벽함을 추구하며 과제를 진행했다. 앞서 이야기했듯 새로운 기술들을 사용하면서 과제 
+
+만큼 중요한 부분가 아닌 부분을 잘 나누어 과제를 진행했어야 했다. 
 
 
 
-## 문제 해결
+처음부터 완벽함을 추구하며 과제를 진행했다. CDD를 충실히 따르기 위해 작은 컴포넌트의 역할과 책임을 고민하는데 많은 시간을 소비했고 가능한 많은 코드에 테스트 코드를 작성하려다보니 생각 이상의 많은 시간을 소비하게 되었다. 
 
-## 아쉬웠던 부분
 
-기존에 사용하지 않았던 많은 기술들을 단시간에 학습하고 적용하려다보니 2일차가 되어서야 본격적으로 과제를 진행할 수 있었다. 또한 Next 14를 사용하면서 많은 버그들에 부딪혔고 이를 해결하는데 많은 시간을 소비해야만 했다. 
-
-TDD
+## 결론
