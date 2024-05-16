@@ -1,1 +1,1 @@
-1. [[Next14에서 React Query는 필요한가?]]
+1. [[Next에서 React Query는 필요한가?]]
