@@ -9,7 +9,6 @@ Effect는 React 패러다임으로부터의 탈출구이다. 그들은 React의 
 > - How to notify parent components about changes
 
 ## How to remove unnecessary Effects
-
 Effect가 필요하지 않은 흔한 두 가지 경우가 존재한다:
 
 - **랜더링 동안 데이터를 변경하는데에는 Effect가 필요하지 않다.** 예를들어 화면에 보이기 전에 리스트를 필터링하고 싶다고 해보자. 당신은 리스트가 변경되었을 때 상태 변수를 업데이트 하는 Effect를 작성하고 싶을 수도 있다. 하지만 이것은 비효율적인 일이다. 상태를 업데이트할 때, React는 처음으로 당신의 컴포넌트 함수를 호출하고 무엇이 화면에 보일지 계산한다. 다음에 React는 DOM에 이러한 변경 사항을 ["commit"](https://react.dev/learn/render-and-commit)할 것이고 화면을 업데이트할 것이다. 다음에 React는 Effect를 실행할 것이다. 만약 당신의 Effect가 또한 즉시 상태를 업데이트 한다면, 이것은 위에서 이야기한 과정을 전부 다시 실행할 것이다. 불필요한 render가 전달되는 것을 피하기 위해서, 컴포넌트의 최상단에 모든 데이터를 변경하라. 그 코드는 자동으로 당신의 props나 상태가 변경되었을 때 재실행될 것이다.
@@ -18,7 +17,6 @@ Effect가 필요하지 않은 흔한 두 가지 경우가 존재한다:
 정확한 직관을 얻는데 도움을 얻기 위해 흔하고 구체적인 몇 가지 예시를 살펴보자.
 
 ## Updating state based on props or state
-
 두 가지 상태 변수(`firstName` 그리고 `lastName`)를 가진 컴포넌트를 가지고 있다고 가정해보자. 당신은 그들을 연결함으로써 그들로부터 `fullName`을 계산하고 싶다. 더욱이, `firstName` 혹은 `lastName`이 변경될 때마다 당신은 `fullName`을 업데이트하기를 원한다. 당신은 본능적으로 `fullName` 상태 변수를 추가하고 Effect에서 그것을 업데이트할지도 모른다:
 
 ```jsx
@@ -51,7 +49,6 @@ function Form() {
 **기존에 존재하는 props 혹은 state로 부터 계산될 수 있는 것이 있는 경우, [그것을 상태에 넣지 말아라.](https://react.dev/learn/choosing-the-state-structure#avoid-redundant-state) 대신에 랜더링 동안 그것을 계산하라.** 이것은 당신의 코드를 더 빠르게(당신은 여분의 "계단식" 업데이트를 피한다) 더 쉽게(당신은 일부 코드를 제거한다), 그리고 덜 에러가 발생하게(서로의 싱크에서 벗어난 다른 상태 변수로 인해 야기되는 버그를 피한다)만들 수 있다. 만약 이 방법이 당신에게 새롭게 느껴진다면, [React로 생각하기](https://react.dev/learn/thinking-in-react#step-3-find-the-minimal-but-complete-representation-of-ui-state)는 상태에 무엇을 넣어야 하는지 설명해준다.
 
 ## Caching expensive calculations
-
 아래의 컴포넌트는 props로 전달받은 `todos`를 이용하고 `filter` prop에 따라 그들을 필터링함으로써 `visibleTodos`를 계산한다. 당신은 상태에 그 결과를 저장하고 Effect로 부터 그것을 업데이트 하고 싶은 기분이 들 수 있다.: 
 
 ```jsx
@@ -140,12 +137,54 @@ function TodoList({ todos, filter }) {
 > 
 
 ## Resetting all state when a prop changes
-`ProfilePage` 컴포넌트는 `userId` prop을 전달받는다.
+`ProfilePage` 컴포넌트는 `userId` prop을 전달받는다. 페이지는 comment input을 포함하고 그것의 변수를 유지하기 위해 `comment` 상태 변수를 사용한다. 어느날, 당신은 문제를 발견했다: 하나의 profile로 부터 또 다른 profile로 이동하려 할 때, `comment` 상태가 초기화 되지 않는다. 결과적으로 우연치않게 올바르지 않은 유저 프로필에 comment를 작성하기 쉬워지게 됐다. 이러한 문제를 해결하기 위해, 당신은 `userId`가 변경될 때마다 `comment` 상태 변수를 지우고 싶다.: 
 
+```jsx
+export default function ProfilePage({ userId }) {
+	const [comment, setComment] = useState('');
+
+	// 🔴 Avoid: Resetting state on prop change in an Effect  
+	useEffect(() => {  
+		setComment('');  
+	}, [userId]);  
+	// ...
+}
+```
+
+이것은 비효율적이다 왜냐하면 `ProfilePage` 그리고 그것의 자식은 오래된 변수를 가지고 초기에 랜더링 될 것이고 이후 다시 랜더링을 수행할 것이기 때문이다. 그것은 또한 당신이 `ProfilePage` 내부에 일부 상태를 가지는 모든 컴포넌트에 이것을 수행할 필요가 있기 때문에 복잡하다. 예를들어, 만약 comment UI가 중첩되었다면, 중첩된 comment 상태 또한 지워내기를 원할 것이다.
+
+대신에, React에게 각각의 유저 프로필이 개념적으로 다른 프로필이라는 것을 분명한 키를 제공함으로써 말해줄 수 있다. 컴포넌트를 두가지로 분리하고 밖의 컴포넌트로부터 안의 컴포넌트에 `key` 속성을 전달하자.: 
+
+```jsx
+export default function ProfilePage({ userId }) {
+	return (
+		<Profile
+			userId={userId}
+			key={userId}
+		/>
+	);
+}
+
+function Profile({ userId }) {
+	// ✅ This and any other state below will reset on key change automatically  
+	const [comment, setComment] = useState('');  
+	// ...
+}
+```
+
+일반적으로, React는 동일한 위치에 동일한 컴포넌트가 랜더링될 때 상태를 보존한다. **`userId`를 `Profile` 컴포넌트에 `key`로 전달함으로써, 당신은 React가 다른 `userId`를 가진 두 가지 `Profile` 컴포넌트를 어떠한 상태도 공유하지 않는 두 가지 다른 컴포넌트로 다루게 요구할 수 있다.**** (당신이 `userId`에 설정했던) key가 변경될 때마다, React는 DOM을 재생성하고 `Profile` 컴포넌트와 그것의 모든 자식들의 [상태를 초기화](https://react.dev/learn/preserving-and-resetting-state#option-2-resetting-state-with-a-key)할 것이다. 이제 `comment` 필드는 프로필 사이를 이동할 때 자동으로 지워질 것이다.
+
+이 예제에서 다음을 주목하자. 오직 외부 `ProfilePage` 컴포넌트만이 exported 되고 프로젝트에 다른 파일에서 보여진다. `ProfilePage`를 랜더링하는 컴포넌트는 그것에 키를 전달할 필요가 없다: 그들은 일반적인 prop으로 `userId`를 전달한다. `ProfilePage`가 내부 `Profile` 컴포넌트에 `key`를 전달한다는 사실은 세부 구현사항이다.
+
+## Adjusting some state when a prop changes
 
 
 
 ## Summary
 - **props 혹은 state를 기반으로 상태를 업데이트 하고 싶다면 Effect를 사용할 필요가 없다.** 이것은 불필요한 랜더링을 만들 뿐이다. 랜더링 동안에 새로운 값을 계산할 수 있게 만들면 이것은 자동으로 props 혹은 state의 변화에 따라 업데이트될 것이다.
+
 - 이때 비싼 연산의 경우 `useMemo`를 이용하여 값을 **캐싱(메모이즈)** 할 수 있다.
+
 - `console.time` / `console.timeEnd`를 통해 연산에 소요되는 시간을 계산하고 이를 통해 메모 사용에 대한 정보를 얻을 수 있다. (실행에 1ms 이상의 시간이 소요된다면 메모 사용을 고려하자.)
+
+- 컴포넌트의 prop에 `key`를 전달함으로써 **컴포넌트의 상태를 초기화**할 수 있다.
