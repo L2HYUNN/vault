@@ -48,4 +48,103 @@ function Form() {
 }
 ```
 
-기존에 
+**기존에 존재하는 props 혹은 state로 부터 계산될 수 있는 것이 있는 경우, [그것을 상태에 넣지 말아라.](https://react.dev/learn/choosing-the-state-structure#avoid-redundant-state) 대신에 랜더링 동안 그것을 계산하라.** 이것은 당신의 코드를 더 빠르게(당신은 여분의 "계단식" 업데이트를 피한다) 더 쉽게(당신은 일부 코드를 제거한다), 그리고 덜 에러가 발생하게(서로의 싱크에서 벗어난 다른 상태 변수로 인해 야기되는 버그를 피한다)만들 수 있다. 만약 이 방법이 당신에게 새롭게 느껴진다면, [React로 생각하기](https://react.dev/learn/thinking-in-react#step-3-find-the-minimal-but-complete-representation-of-ui-state)는 상태에 무엇을 넣어야 하는지 설명해준다.
+
+## Caching expensive calculations
+
+아래의 컴포넌트는 props로 전달받은 `todos`를 이용하고 `filter` prop에 따라 그들을 필터링함으로써 `visibleTodos`를 계산한다. 당신은 상태에 그 결과를 저장하고 Effect로 부터 그것을 업데이트 하고 싶은 기분이 들 수 있다.: 
+
+```jsx
+function TodoList({ todos, filter }) {
+	const [newTodo, setNewTodo] = useState('');
+
+	// 🔴 Avoid: redundant state and unnecessary Effect  
+	const [visibleTodos, setVisibleTodos] = useState([]);  
+	useEffect(() => {  
+		setVisibleTodos(getFilteredTodos(todos, filter));  
+	}, [todos, filter]);  
+	// ...
+}
+```
+
+앞에 예시와 같이, 이것은 불필요하며 비효율적인 일이다. 첫번째로, 상태와 Effect를 제거하라:
+
+```jsx
+function TodoList({ todos, filter }) {
+	const [newTodo, setNewTodo] = useState('');
+
+	// ✅ This is fine if getFilteredTodos() is not slow.  
+	const visibleTodos = getFilteredTodos(todos, filter);  
+	// ...
+}
+```
+
+일반적으로 이 코드는 괜찮다! 하지만 아마도 `getFilteredTodos()`는 많은 `todos`를 가지고 있다면 느릴 수 있다. 이 경우 `newTodo`와 같은 직접적으로 관계되지 않은 일부 상태 변수가 변경될 때`getFilteredTodos()` 가 재계산되는 것을 원치않을 수 있다.
+
+이때, [`useMemo`](https://react.dev/reference/react/useMemo) Hook으로 그것을 감쌈으로써 비싼 연산을 캐쉬(혹은 ["메모이즈"](https://en.wikipedia.org/wiki/Memoization))할 수 있다.
+
+```jsx
+import { useMemo, useState } from 'react';
+
+function TodoList({ todos, filter }) {
+	const [newTodo, setNewTodo] = useState('');
+
+	// ✅ Does not re-run unless todos or filter change
+	const visibleTodos = useMemo(() => {
+		return getFilteredTodos(todos, filter);
+	}, [todos, filter]);
+	// ...
+}
+```
+
+혹은, 한 줄에 작성하면 다음과 같다: 
+
+```jsx
+function TodoList({ todos, filter }) {
+	const [newTodo, setNewTodo] = useState('');
+	
+	// ✅ Does not re-run getFilteredTodos() unless todos or filter change
+	const visibleTodos = useMemo(() => getFilteredTodos(todos, filter), [todos, filter]);
+	// ...
+}
+```
+
+이것은 React에게 `todos` 혹은 `filter`가 변경되지 않는 이상 내부 함수가 재실행되는 것을 원치 않는다고 말하는 것이다. React는 처음 render 동안 `getFilteredTodos()`의 반환 값을 기억할 것이다. 다음 랜더동안, 그것은 `todos` 혹은 `filter`가 변경되었는지 체크할 것이다. 만약 그들이 지난번과 같은 값을 유지한다면, `useMemo`는 저장되어 있던 지난 결과를 반환할 것이다. 하지만 만약 그들이 다르다면, React는 내부 함수를 재호출 할 것이다(그리고 그것의 결과를 저장한다).
+
+> [!example] DEEP DIVE
+> ### How to tell if a calculation is expensive?
+> 
+> 일반적으로, 수천의 객체를 생성하거나 반복하지 않는 이상, 아마도 비싼 것은 아닐 것이다. 만약 조금 더 확신을 얻고 싶다면, 코드의 일부에 사용되는 시간을 측정하기 위해 console log를 추가할 수 있다:
+> 
+> ```jsx
+> console.time('filter array');
+> const visibleTodos = getFilteredTodos(todos, filter);
+> console.timeEnd('filter array');
+> ```
+>
+> 측정하려는 동작을 수행하자 (예를들어, input에 타이핑하는것과 같은). 이후 콘솔에 `filter array: 0.15ms`와 같은 로그들을 볼 수 있다. 만약 전체 로그된 시간이  상당한 양 (`1ms` 혹은 그 이상)으로 누적된 경우, 연산을 메모이즈 하는 것이 맞을 것이다. 실험으로써, 당신은 `useMemo`를 이용하여 연산을 감싸고 동작에 대한 종합적인 로그 시간이 줄었는지 아닌지를 입증할 수 있다:
+> 
+>```jsx
+> console.time('filter array');
+> const visibleTodos = useMemo(() => {
+> 	return getFilteredTodos(todos, filter); // Skipped if todos and filter haven't changed
+> }, [todos, filter]);
+> console.timeEnd('filter array');
+>``` 
+>
+> `useMemo`는 첫 랜더를 더 빠르게 만들지 않는다. 그것은 오직 업데이트에 불필요한 작업을 스킵하는데 도움을 준다.
+> 
+> 유저가 사용하는 것 보다 당신의 머신이 아마도 더 빠를 것이라는 것을 명심해라. 그렇기에 인공적으로 느려진 환경에서 성능을 테스트하는 것은 좋은 생각이다. 예를들어, 크롬은 이것을 위해 [CPU Throttling](https://developer.chrome.com/blog/new-in-devtools-61/#throttling) 옵션을 제공한다.
+> 
+> 또한 개발 모드에서 성능을 측정하는 것은 대부분 정확한 결과를 주지 못한다는 것에 주목하자. (예를들어, 엄격모드가 활성화되어 있는 경우, 각각의 컴포넌트가 한 번이 아닌 두 번 랜더되는 것을 보게될 것이다.)
+> 
+
+
+
+
+
+
+## Summary
+- **props 혹은 state를 기반으로 상태를 업데이트 하고 싶다면 Effect를 사용할 필요가 없다.** 이것은 불필요한 랜더링을 만들 뿐이다. 랜더링 동안에 새로운 값을 계산할 수 있게 만들면 이것은 자동으로 props 혹은 state의 변화에 따라 업데이트될 것이다.
+- 이때 비싼 연산의 경우 `useMemo`를 이용하여 값을 **캐싱(메모이즈)** 할 수 있다.
+- `console.time` / `console.timeEnd`를 통해 연산에 소요되는 시간을 계산하고 이를 통해 메모 사용에 대한 정보를 얻을 수 있다. (실행에 1ms 이상의 시간이 소요된다면 메모 사용을 고려하자.)
