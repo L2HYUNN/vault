@@ -179,6 +179,86 @@ function Profile({ userId }) {
 ## Adjusting some state when a prop changes
 때때로, 당신은 prop 변화에 따른 상태의 일부분을 조정하거나 리셋하기를 원할 수 있다, 하지만 그것의 전부는 아니다.
 
+`List` 컴포넌트는 prop으로 `items` 리스트를 받는다 그리고 `selection` 상태 변수에 있는 선택된 아이템을 유지한다. 당신은 `items` prop이 다른 배열을 받을 때마다 `selection` 변수를 `null`로 초기화 하기를 원한다:
+
+```jsx
+function List({ items }) {
+	const [isReverse, setIsReverse] = useState(false);
+	const [selection, setSelection] = useState(null);
+
+	// 🔴 Avoid: Adjusting state on prop change in an Effect  
+	useEffect(() => {  
+		setSelection(null);  
+	}, [items]);  
+	// ...
+}
+```
+
+이것은 이상적이지 않다. `items`이 변경될 때마다, `List` 그리고 그것의 자식 컴포넌트들은 먼저 오래된 `selection` 변수를 가지고 랜더링될 것이다. 이후에 React는 DOM을 업데이트하고 Effect를 실행할 것이다. 마지막으로, `setSelection(null)` 호출은 `List`  그리고 그것의 자식 컴포넌트들에 또 다른 리랜더링을 야기할 것이다, 이 전체 과정이 다시 재시작된다.
+
+Effect를 제거하는 것으로부터 시작하자, 랜더링동안 직접 상태를 조정하라:
+
+```jsx
+function List({ items }) {
+	const [isReverse, setIsReverse] = useState(false);
+	const [selection, setSelection] = useState(null);
+
+	// Better: Adjust the state while rendering  
+	const [prevItems, setPrevItems] = useState(items);  
+	
+	if (items !== prevItems) {  
+		setPrevItems(items);  
+		setSelection(null);  
+	}  
+	// ...
+}
+```
+
+이와 같이 [이전 랜더링으로부터 정보를 저장](https://react.dev/reference/react/useState#storing-information-from-previous-renders)하는 것은 이해하기 어려울 수 있지만, Effect에서 동일한 상태를 업데이트 하는 것보다는 낫다. 위의 예시에서 `setSelection`은 랜더링 동안 직접적으로 호출된다. React는 `return` 문을 빠져나온 즉시 `List` 컴포넌트를 리랜더링할 것이다. React는 아직 `List` 컴포넌트의 자식을 랜더링하거나 DOM을 업데이트 하지 않는다, 그렇기에 이것은 `List` 컴포넌트의 자식들이 오래된 `selection`
+변수를 랜더링하는 것을 스킵할 수 있게 해준다. 
+
+랜더링 중에 컴포넌트를 업데이트할 때, React는 JSX 반환을 내던지고 즉시 랜더링을 재시도한다. 매우 느린 계단식 재시도를 피하기 위해, React는 오직 랜더링동안 같은 컴포넌트의 상태만을 업데이트 할 수 있게 허락한다. 만약 랜더링 도중 또 다른 컴포넌트의 상태를 업데이트하려 한다면, 에러를 보게될 것이다. `items !== prevItems`와 같은 조건문은 반복을 피하기 위해 필요하다. 이와 같이 상태를 조정할 수 있지만, DOM을 변경하거나 타임아웃을 설정하는 것과 같은 다른 사이드 이팩트는 [컴포넌트를 순수하게 유지](https://react.dev/learn/keeping-components-pure)하기 위해 이벤트 핸들러 혹은 Effect에 존재해야만 한다.
+
+**비록 이 패턴이 Effect를 사용하는 것 보다 조금 더 효율적일지라도, 대부분의 컴포넌트에는 그것이 필요하지 않을 것이다.** 어떻게 그것을 행하던지 간에, props 혹은 다른 상태에 기반하여 상태를 조정하는 것은 당신의 데이터 흐름을 이해하고 디버깅하기 어렵게 만들 것이다. 항상 대신에 [키를 이용하여 모든 상태를 초기화](https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes) 할 수 있는지 혹은 [랜더링중에 모든것을 계산](https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state)할 수 있는지 확인하라. 예를 들어, 선택된 아이템을 저장(그리고 리셋)하는 것 대신에 당신은 선택된 아이템의 ID를 저장할 수 있다:
+
+```jsx
+function List({ items }) {
+	const [isReverse, setIsReverse] = useState(false);
+	const [selection, setSelection] = useState(null);
+
+	// ✅ Best: Calculate everything during rendering  
+	const selection = items.find(item => item.id === selectedId) ?? null;  
+	// ...
+}
+```
+
+이제 상태를 "조정"하는 것이 전혀 필요하지 않다. 만약 선택된 ID를 가진 아이템이 리스트에 있다면, 그것은 선택된채로 남는다. 만약 그것이 아니라면, 랜더링 중에 계산된 `selection`은 `null`일 것이다 왜냐하면 매칭된 아이템을 찾을 수 없기 때문이다. 이 동작은 다르지만 선택을 유지하는 `items`에 대한 대부분의 변경이 더 나은 것으로 볼 수 있다.
+
+## Sharing logic between event handlers
+제품을 구매할 수 있게 해주는 두 가지 버튼 (Buy and Checkout)을 가진 제품 페이지를 가지고 있다고 해보자. 당신은 유저가 카트에 제품을 넣을때마다 알림을 보여주기를 원한다. 두 버튼의 클릭 핸들러에서 `showNotification()` 함수를 호출하는 것이 반복적인 작업처럼 느껴질 수 있다. 그렇기에 당신은 Effect에 이 로직을 위치하고 싶은 욕구를 느낄지도 모른다:
+
+```jsx
+function ProductPage({ product, addToCart }) {
+	// 🔴 Avoid: Event-specific logic inside an Effect
+	useEffect(() => {
+		if (product.isInCart) {
+			showNotification(`Added ${product.name} to the shopping cart!`);
+		}
+	}, [product]);
+
+	function handleBuyClick() {
+		addToCart(product);
+	}
+
+	function handleCheckoutClick() {
+		addToCart(product);
+		navigateTo('/checkout');
+	}
+}
+```
+
+
+
 
 ## Summary
 - **props 혹은 state를 기반으로 상태를 업데이트 하고 싶다면 Effect를 사용할 필요가 없다.** 이것은 불필요한 랜더링을 만들 뿐이다. 랜더링 동안에 새로운 값을 계산할 수 있게 만들면 이것은 자동으로 props 혹은 state의 변화에 따라 업데이트될 것이다.
@@ -188,3 +268,5 @@ function Profile({ userId }) {
 - `console.time` / `console.timeEnd`를 통해 연산에 소요되는 시간을 계산하고 이를 통해 메모 사용에 대한 정보를 얻을 수 있다. (실행에 1ms 이상의 시간이 소요된다면 메모 사용을 고려하자.)
 
 - 컴포넌트의 prop에 `key`를 전달함으로써 **컴포넌트의 상태를 초기화**할 수 있다.
+
+- **React는 랜더링 중에 같은 컴포넌트의 상태만을 업데이트할 수 있다.** 이것은 매우 느린 계단식 재시도를 피할 수 있게 만들어준다. 이와 같은 랜더링 중 업데이트는 자식에 전파되기 전, DOM에 반영되기 전에 리랜더링을 실행한다.
