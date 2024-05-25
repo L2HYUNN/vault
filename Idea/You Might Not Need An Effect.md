@@ -177,7 +177,7 @@ function Profile({ userId }) {
 이 예제에서 다음을 주목하자. 오직 외부 `ProfilePage` 컴포넌트만이 exported 되고 프로젝트에 다른 파일에서 보여진다. `ProfilePage`를 랜더링하는 컴포넌트는 그것에 키를 전달할 필요가 없다: 그들은 일반적인 prop으로 `userId`를 전달한다. `ProfilePage`가 내부 `Profile` 컴포넌트에 `key`를 전달한다는 사실은 세부 구현사항이다.
 
 ## Adjusting some state when a prop changes
-
+때때로, 당신은 prop 변화에 따른 상태의 일부분을 조정하거나 리셋하기를 원할 수 있다, 하지만 그것의 전부는 아니다.
 
 
 ## Summary
