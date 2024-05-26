@@ -257,6 +257,141 @@ function ProductPage({ product, addToCart }) {
 }
 ```
 
+이 Effect는 불필요하다. 그것은 또한 버그를 발생시킬 가능성이 높다. 예를들어, 당신의 app이 페이지 리로드 사이에 쇼핑 카트를 "기억"하고 있다고 해보자. 만약 당신이 상품을 카트에 추가하고 페이지를 새로고침하면, 알림은 다시 나타날 것이다. 이것은 `product.isIncart`가 이미 페이지를 로드할 때 `true`이기 때문에, 위의 Effect는 `showNotification()`을 호출할 것이다.
+
+**당신이 일부 코드가 Effect에 있어야하는지 혹은 이벤트 핸들러에 있어야 하는지 확신하지 못할 때, 왜 이 코드를 실행해야 하는지 스스로에게 물어보아라. 오직 컴포넌트가 유저에게 보여졌기 때문에 코드를 실행해야만 할 때 Effect를 사용해라.** 예를 들어, 알림이 유저가 버튼을 눌렀기 때문에 보여야만 한다면, 그 페이지가 보여졌기 때문이 아닌 것이다. Effect를 제거하고 두 이벤트 핸들러에서 호출되는 함수 안에 공유되는 로직을 넣아라.
+
+```jsx
+function ProductPage({ product, addToCart }) {
+	// ✅ Good: Event-specific logic is called from event handlers  
+	function buyProduct() {  
+		addToCart(product);  
+		showNotification(`Added ${product.name} to the shopping cart!`);  
+	}  
+	
+	function handleBuyClick() {  
+		buyProduct();  
+	}  
+	
+	function handleCheckoutClick() {  
+		buyProduct();  
+		navigateTo('/checkout');  
+	
+	}  
+	// ...
+}
+```
+
+이것은 둘 다 불필요한 Effect를 제거하고 버그를 고친다.
+
+## Sending a POST request
+`Form` 컴포넌트는 두 종류의 POST 요청을 보낸다. 그것은 마운트 되었을 때 이벤트 분석을 보낸다. 폼을 채우고 제출 버튼을 클릭할 때, 그것은 `/api/register` 엔드포인트에 POST 요청을 보낼 것이다: 
+
+```jsx
+function Form() {
+	const [firstName, setFirstName] = useState('');
+	const [lastName, setLastName] = useState('');
+
+	// ✅ Good: This logic should run because the component was displayed  
+	useEffect(() => {  
+		post('/analytics/event', { eventName: 'visit_form' });  
+	}, []);  
+	  
+	// 🔴 Avoid: Event-specific logic inside an Effect  
+	const [jsonToSubmit, setJsonToSubmit] = useState(null);  
+	
+	useEffect(() => {  
+		if (jsonToSubmit !== null) {  
+			post('/api/register', jsonToSubmit);  
+		}  
+	}, [jsonToSubmit]);  
+	
+	function handleSubmit(e) {  
+		e.preventDefault();  
+		setJsonToSubmit({ firstName, lastName });  
+	}  
+	// ...
+}
+```
+
+앞의 예와 동일한 기준을 적용해보자.
+
+분석 POST 요청은 Effect에 있어야만한다. 이것은 분석 이벤트를 보내는 이유가 폼이 보여졌기 때문이다. (이것은 개발 모드에서 두 번 실행된다, 하지만 이것을 다루는 방법은 [여기](https://react.dev/learn/synchronizing-with-effects#sending-analytics)를 참조하라.)
+
+그러나, `/api/register` POST 요청은 폼이 보여지는 것에 의해 야기되는 것이 아니다. 당신은 오직 특정한 순간: 유저가 버튼을 눌렀을때 그 요청을 보내기를 원한다. 그것은 오직 특별한 상호작용에서만 일어나야 한다. 두 번째 Effect를 제거하고 이벤트 핸들러에 POST 요청을 옮겨라:
+
+```jsx
+function Form() {
+	const [firstName, setFirstName] = useState('');
+	const [lastName, setLastName] = useState('');
+
+	// ✅ Good: This logic should run because the component was displayed  
+	useEffect(() => {  
+		post('/analytics/event', { eventName: 'visit_form' });  
+	}, []);  
+	
+	function handleSubmit(e) {  
+		e.preventDefault();  
+		// ✅ Good: Event-specific logic is in the event handler
+		post('/api/register', { firstName, lastName });  
+	}  
+	// ...
+}
+```
+
+이벤트 핸들러 혹은 Effect에 일부 로직을 넣을지 말지 선택할 때, 답하기 위해 필요한 주요 질문은 유저의 관점에서 그것이 무슨 종류의 로직인지 아는 것이다. 만약 이 로직이 특정한 상호작용에 의해서 발생한다면, 이벤트 핸들러에 그것을 두어야 한다. 만약 그것이 유저가 스크린에 컴포넌트를 보는것에 의해 발생했다면, Effect에 그것을 두어야 한다.
+
+## Chains of computations
+때떄로 다른 상태에 근거하여 각 상태의 일부를 조정하는 Effect를 체인하고 싶은 욕구가 생길 수 있다:  
+
+```jsx
+function Game() {
+	const [card, setCard] = useState(null); 
+	const [goldCardCount, setGoldCardCount] = useState(0);  
+	const [round, setRound] = useState(1);  
+	const [isGameOver, setIsGameOver] = useState(false);
+	
+	// 🔴 Avoid: Chains of Effects that adjust the state solely to trigger each other  
+	useEffect(() => {  
+		if (card !== null && card.gold) {  
+			setGoldCardCount(c => c + 1);  
+		}  
+	}, [card]);  
+	
+	useEffect(() => {  
+		if (goldCardCount > 3) {  
+			setRound(r => r + 1); 
+			setGoldCardCount(0);  
+		}  
+	}, [goldCardCount]);  
+	
+	useEffect(() => {  
+		if (round > 5) {  
+			setIsGameOver(true);  
+		}  
+	}, [round]);  
+
+	useEffect(() => {  
+		alert('Good game!');  
+	}, [isGameOver]);  
+	
+	function handlePlaceCard(nextCard) {  
+		if (isGameOver) {  
+			throw Error('Game already ended.');  
+		} else {  
+			setCard(nextCard);  
+		}  
+	}  
+	// ...
+}
+```
+
+이 코드에는 두 가지 문제가 있다.
+
+한 가지 문제는 그것이 매우 비효율적이라는 것이다: 컴포넌트는 (그리고 그것의 자식들은) 체인에 있는 각 `set` 호출 사이에 리랜더링을 가진다. 위의 예시에서, 최악인 케이스(`setCard` -> render -> `setGoldCardCount` -> render -> `setRound` -> render -> `setIsGameOver` -> render)는 트리 아래에 세 가지 불필요한 리랜더링이 있다는 것 이다.
+
+심지어 그것이 느리지 않더라도, 당신의 코드가 발전함에 따라, 당신이 사용한 "체인"이 새로운 요구사항에 맞지 않는 케이스가 발생할 것이다. 게임 동작에 대한 기록을 단계별로 살펴보는 방법을 추가한다고 상상해보자. 당신은 각 상태 변수를 과거의 값으로 업데이트함으로써 그것을 하려 했을 것이다.
+
 
 
 
@@ -270,3 +405,5 @@ function ProductPage({ product, addToCart }) {
 - 컴포넌트의 prop에 `key`를 전달함으로써 **컴포넌트의 상태를 초기화**할 수 있다.
 
 - **React는 랜더링 중에 같은 컴포넌트의 상태만을 업데이트할 수 있다.** 이것은 매우 느린 계단식 재시도를 피할 수 있게 만들어준다. 이와 같은 랜더링 중 업데이트는 자식에 전파되기 전, DOM에 반영되기 전에 리랜더링을 실행한다.
+
+- **이벤트와 관련된 로직을 이벤트 핸들러가 아닌 Effect에서 처리하지 말아라.**
