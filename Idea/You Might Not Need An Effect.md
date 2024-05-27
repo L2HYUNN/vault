@@ -637,6 +637,89 @@ function ChatIndicator() {
 
 비록 이것을 위해 Effect를 사용하는 것이 흔한 경우이더라도, React는 대신 선호되는 외부 저장소를 구독하기 위한 특별한 목적으로 제작된 Hook을 가지고 있다. Effect를 제거하고 [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore)를 호출하는 것으로 변경하라:
 
+```jsx
+function subscribe(callback) {
+	window.addEventListener('online', callback);  
+	window.addEventListener('offline', callback);  
+	return () => {  
+		window.removeEventListener('online', callback);  
+		window.removeEventListener('offline', callback);  
+	}; 
+}
+
+function useOnlineStatus() {
+	// ✅ Good: Subscribing to an external store with a built-in Hook  
+	return useSyncExternalStore(  
+		subscribe, // React won't resubscribe for as long as you pass the same function  
+		() => navigator.onLine, // How to get the value on the client  
+		() => true // How to get the value on the server  
+	);
+}
+
+function ChatIndicator() {
+	const isOnline = useOnlineStatus();
+	// ...
+}
+```
+
+## Fetching data
+많은 앱들이 Effect를 이용하여 데이터 패칭을 시작한다. 이와 같이 데이터 패칭 Effect를 작성하는 것은 꽤나 흔한 일이다: 
+
+```jsx
+function SearchResults({ query }) {
+	const [result, setResults] = useState([]);
+	const [page, setPage] = useState(1);
+
+	useEffect(() => {
+		// 🔴 Avoid: Fetching without cleanup logic
+		fetchResults(query, page).then(json => {
+			setResults(json);
+		});
+	}, [query, page]);
+	
+	function handleNextPageClick() {
+		setPage(page + 1);
+	}
+	// ...
+}
+```
+
+이벤트 핸들러에 이 패치를 옮길 필요는 없다. 
+
+이것은 당신이 이벤트 핸들러에 로직을 넣어야만 했던 아까의 예시와는 꽤나 대조적으로 보인다. 하지만 패치의 주 이유가 타이핑 이벤트가 아니라는 것을 고려해라. Search 입력들은 꽤나 URL로 부터 채워진다 그리고 유저는 입력을 건들지 않고 뒤나 앞으로 이동할 것이다.
+
+`page` 그리고 `query`가 어디로부터 오는지는 중요하지 않다. 이 컴포넌트를 볼 수 있는 동안, 당신은 현재 `page` 그리고 `query`에 대한 네트워크로부터 데이터를 동기화한 `results`를 유지하길 원한다. 이것이 그것이 Effect에 존재하는 이유이다.
+
+그러나, 위의 코드는 버그를 가지고있다. 당신이 `"hello"`를 빠르게 타이핑한다고 상상해보자. 이후에 `query`는 `"h"` 부터 `"he"`, `"hel"`, `"hell"`, 그리고 `"hello"`로 변경될 것이다. 이것은 패치들을 나누기 시작할 것이다, 하지만 응답이 어떤 순서로 도착할 지에 대한 보장이 없다. 예를들어, `"hell"` 응답은 `"hello"`응답 뒤에 도착할지 모른다. 마지막에 `setResults()`를 호출했기 때문에, 당신은 잘못된 검색 결과를 보게될 것이다. 이것은 ["경쟁 상태"](https://en.wikipedia.org/wiki/Race_condition) 라고 불린다: 두 가지 다른 요청은 서로에 대해 "경쟁"하게 되고 당신이 예측한 것이 아닌 다른 순서로 온다.
+
+**경쟁 상태를 해결하기 위해, 당신은 오래된 응답을 무시하는 [클린업 함수를 추가](https://react.dev/learn/synchronizing-with-effects#fetching-data)해야만 한다:**
+
+```jsx
+function SearchResults({ query }) {
+	const [result, setResults] = useState([]);
+	const [page, setPage] = useState(1);
+
+	useEffect(() => {
+		let ignore = false;
+		fetchResults(query, page).then(json => {
+			if (!ignore) {
+				setResults(json);
+			}
+		});
+		return () => {
+			ignore = true;
+		};
+	}, [query, page]);
+	
+	function handleNextPageClick() {
+		setPage(page + 1);
+	}
+	// ...
+}
+```
+
+이것은 당신의 Effect가 데이터를 패치할 때, 마지막 응답을 제외한 모든 응답들이 무시되는 것을 보장한다.
+
 
 ## Summary
 - **props 혹은 state를 기반으로 상태를 업데이트 하고 싶다면 Effect를 사용할 필요가 없다.** 이것은 불필요한 랜더링을 만들 뿐이다. 랜더링 동안에 새로운 값을 계산할 수 있게 만들면 이것은 자동으로 props 혹은 state의 변화에 따라 업데이트될 것이다.
@@ -656,3 +739,5 @@ function ChatIndicator() {
 - Effect를 통해 마운트 때마다 실행하는 것이 아닌 초기에 앱이 실행되었을 때 한 번 실행하고 싶다면 전역 플래그를 설정하여 실행 여부를 결정할 수 있다.
 
 - **React에서 데이터는 부모에서 자식으로 단방향으로 이동한다.** 만약 자식에서 부모의 데이터를 업데이트 한다면 이것은 데이터 흐름을 추적하기 어렵게 만들 것이다. 데이터는 부모 컴포넌트에서 자식 컴포넌트로 흐르는 것이 이상적이다. 
+
+- 서드 파티 라이브러리 혹은 브라우저 API와 같은 외부 스토어로부터 구독이 필요한 경우 Effect를 이용하여 수동으로 작업하는 것이 아닌 `useSyncExternalStore` Hook을 사용할 수 있다.
