@@ -390,8 +390,98 @@ function Game() {
 
 한 가지 문제는 그것이 매우 비효율적이라는 것이다: 컴포넌트는 (그리고 그것의 자식들은) 체인에 있는 각 `set` 호출 사이에 리랜더링을 가진다. 위의 예시에서, 최악인 케이스(`setCard` -> render -> `setGoldCardCount` -> render -> `setRound` -> render -> `setIsGameOver` -> render)는 트리 아래에 세 가지 불필요한 리랜더링이 있다는 것 이다.
 
-심지어 그것이 느리지 않더라도, 당신의 코드가 발전함에 따라, 당신이 사용한 "체인"이 새로운 요구사항에 맞지 않는 케이스가 발생할 것이다. 게임 동작에 대한 기록을 단계별로 살펴보는 방법을 추가한다고 상상해보자. 당신은 각 상태 변수를 과거의 값으로 업데이트함으로써 그것을 하려 했을 것이다.
+심지어 그것이 느리지 않더라도, 당신의 코드가 발전함에 따라, 당신이 사용한 "체인"이 새로운 요구사항에 맞지 않는 케이스가 발생할 것이다. 게임 동작에 대한 기록을 단계별로 살펴보는 방법을 추가한다고 상상해보자. 당신은 각 상태 변수를 과거의 값으로 업데이트함으로써 그것을 하려 했을 것이다. 그러나 `card` 상태를 과거의 값으로 설정하는 것은 Effect 체인을 다시 트리거할 것이고 당신이 보고있는 데이터를 변경할 것이다. 이와 같은 코드는 경직되고 취약한 경우가 많다.
 
+이 경우에, 랜더링 중에 가능한 것을 계산하고 이벤트 핸들러에서 상태를 조정하는 것이 더 낫다.
+
+```jsx
+function Game() {
+	const [card, setCard] = useState(null); 
+	const [goldCardCount, setGoldCardCount] = useState(0);  
+	const [round, setRound] = useState(1);  
+	const [isGameOver, setIsGameOver] = useState(false);
+	
+	// ✅ Calculate what you can during rendering  
+	const isGameOver = round > 5;
+	
+	function handlePlaceCard(nextCard) {  
+		if (isGameOver) {  
+			throw Error('Game already ended.');  
+		} 
+
+		// ✅ Calculate all the next state in the event handler  
+		setCard(nextCard);  
+		if (nextCard.gold) {  
+			if (goldCardCount <= 3) {  
+				setGoldCardCount(goldCardCount + 1);  
+			} else {  
+				setGoldCardCount(0);  
+				setRound(round + 1);  
+				if (round === 5) {  
+				alert('Good game!');  
+				}  
+			}  
+		}
+	}  
+	// ...
+}
+```
+
+이것이 훨씬 더 효율적이다. 또한, 만약 게임 기록을 보기위한 방법을 구현 한다면, 이제 당신은 모든 다른 값을 조정하는 Effect 체인을 트리거시키지 않고 각 상태 변수를 과거의 움직임으로 설정 할 수 있다. 만약 여러 이벤트 핸들러에서 로직을 재사용 해야 한다면, 당신은 [함수를 추출](https://react.dev/learn/you-might-not-need-an-effect#sharing-logic-between-event-handlers)하고 핸들러에서 그것을 호출할 수 있다.
+
+이벤트 핸들러 내부에서, [상태는 마치 스냅샷처럼 동작](https://react.dev/learn/state-as-a-snapshot)한다는 것을 기억하라. 예를 들어, 심지어 `setRound(round + 1)`을 호출한 후에, `round` 변수는 버튼을 클릭했던 순간의 변수를 반영할 것이다. 만약 당신이 연산에 다음 변수를 사용해야만 한다면, 수동적으로 `const nextRound = round + 1`과 같이 선언하라.
+
+일부 경우에, 이벤트 핸들러에서 직접적으로 다음 상태를 계산할 수 없을 수 있다. 예를 들어, 다음 드랍다운의 옵션이 이전의 드랍다운의 변수에 의해 결정되는 다수의 드랍다운을 가진 폼을 상상해보자. 이후에, Effect의 체인은 네트워크와 동기화하기 때문에 적절하다.
+
+## Initializing the application
+일부 로직은 app이 로드될 때 단 한 번만 실행되어야 한다.
+
+최상위 수준의 컴포넌트에 있는 Effect에 그것을 위치하고 싶다고 생각해보자:
+
+```jsx
+function App() {
+	// 🔴 Avoid: Effects with logic that should only ever run once  
+	useEffect(() => {  
+		loadDataFromLocalStorage();  
+		checkAuthToken();  
+	}, []);  
+	// ...
+}
+```
+
+그러나 당신은 빠르게 그것이 [개발 모드에서 두 번 실행](https://react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development)된다는 것을 발견하게 될 것이다. 이것은 문제를 야기할 수 있다 - 예를 들어, 아마도 그것은 인증 토큰을 무효화 한다. 왜냐하면 그 함수는 두 번 호출되게 디자인되지 않았기 때문이다. 일반적으로 당신의 컴포넌트는 다시 마운트 되었을 때 탄력이 있다. 이것은 당신의 최상단 `App` 컴포넌트를 포함한다.
+
+비록 실제로 프로덕션 모드에서 그것이 다시 마운트 될 일이 없다 하더라도, 모든 컴포넌트에서 동일한 제약을 따르는 것이 코드를 옮기고 재사용하기 쉬울 것이다. 만약 일부 로직이 컴포넌트가 마운트되었을 때 보다 앱이 로드 되었을 때 한 번 실행되어야만 한다면, 그것이 이미 실행되었는지 아닌지 추적하기 위해 상단에 변수를 추가하라:
+
+```jsx
+let didInit = false;
+
+function App() {
+	useEffect(() => {
+		if (!didInit) {
+			didInit = true;
+			// ✅ Only runs once per app load
+			loadDataFromLocalStorage();
+			checkAuthToken();
+		}
+	}, []);
+	// ...
+}
+```
+
+당신은 그것을 모듈이 초기화 되거나 앱을 랜더하기 전에 또한 실행할 수 있다:
+
+```jsx
+if (typeof window !== 'undefined') { // Check if we're running in the browser.
+	// ✅ Only runs once per app load  
+	checkAuthToken();  
+	loadDataFromLocalStorage();
+}
+```
+
+최상위에 있는 코드는 당신의 컴포넌트가 임포트되었을 때 한 번 실행된다 - 심지어 랜더링이 끝나지 않더라도. 임의의 컴포넌트를 임포트 할 때 느려지거나 놀라운 동작을 피하기 위해, 이 패턴을 과다 사용하지 말아라. 앱 전역에 초기화 로직을 `App.js`와 같은 루트 컴포넌트 모듈 혹은 당신의 어플리케이션의 엔트리 포인트에 위치시켜라.
+
+## Notifying parent components about state changes
 
 
 
@@ -407,3 +497,7 @@ function Game() {
 - **React는 랜더링 중에 같은 컴포넌트의 상태만을 업데이트할 수 있다.** 이것은 매우 느린 계단식 재시도를 피할 수 있게 만들어준다. 이와 같은 랜더링 중 업데이트는 자식에 전파되기 전, DOM에 반영되기 전에 리랜더링을 실행한다.
 
 - **이벤트와 관련된 로직을 이벤트 핸들러가 아닌 Effect에서 처리하지 말아라.**
+
+- **이팩트 체인(Effect Chains)을 만드는 것은 굉장히 비효율적이다.** 가능한 랜더링 중에 가능한 것을 계산하고 이벤트 핸들러에서 상태를 조정하라.
+
+- Effect를 통해 마운트 때마다 실행하는 것이 아닌 초기에 앱이 실행되었을 때 한 번 실행하고 싶다면 전역 플래그를 설정하여 실행 여부를 결정할 수 있다.
