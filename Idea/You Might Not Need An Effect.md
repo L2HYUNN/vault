@@ -583,7 +583,59 @@ function Child({ onFetched }) {
 }
 ```
 
-React에서, 데이터는 부모 컴포넌트에서 그들의 자식으로 흐른다. 화면에서 무언가 문제가 발생하였을 때, 당신은 어떤 컴포넌트가 이상한 prop을 전달했는지 혹인 이상한 상태를 가지는지 찾을때까지 컴포넌트 체인을 올라가며 정보가 어디로부터 왔는지 추적할 수 있다.
+React에서, 데이터는 부모 컴포넌트에서 그들의 자식으로 흐른다. 화면에서 무언가 문제가 발생하였을 때, 당신은 어떤 컴포넌트가 이상한 prop을 전달했는지 혹인 이상한 상태를 가지는지 찾을때까지 컴포넌트 체인을 올라가며 정보가 어디로부터 왔는지 추적할 수 있다. 자식 컴포넌트가 Effect에서 부모 컴포넌트의 상태를 업데이트 할 때, 데이터 흐름은 매우 추적하기 어려워진다. 부모와 자식 둘 다 동일한 데이터가 필요하기 때문에, 부모 컴포넌트가 데이터를 패치하고 그것을 대신에 자식에게 전달해주게 만들자: 
+
+```jsx
+function Parent() {
+	const data = useSomeAPI();
+	// ...
+	// ✅ Good: Passing data down to the child
+	return <Child data={data} />;
+}
+
+function Child({ data }) {
+	// ...
+}
+```
+
+이것은 더욱 간단하고 데이터 흐름을 예측할 수 있게 만든다: 데이터는 부모에서 자식으로 흐른다.
+
+## Subscribing to an external store
+때때로, 당신의 컴포넌트들은 React 상태 외부의 일부 데이터를 구독해야할 필요가 있다. 이 데이터는 서드 파티 라이브러리 혹은 빌트인 브라우저 API로 부터 올 수 있다. 이 데이터는 React의 지식 없이 변경될 수 있기 때문에, 당신은 수동적으로 그것에 컴포넌트를 구독해야만한다. 이것은 종종 Effect를 가지고 행해진다, 예는 다음과 같다: 
+
+```jsx
+function useOnlineStatus() {
+	// Not ideal: Manual store subscription in an Effect
+	const [isOnline, setIsOnline] = useState(true);
+
+	useEffect(() => {
+		function updateState() {
+			setIsOnline(navigator.onLine);
+		}
+
+		updateState();
+
+		window.addEventListener('online', updateState);  
+		window.addEventListener('offline', updateState);  
+		return () => {  
+			window.removeEventListener('online', updateState);  
+			window.removeEventListener('offline', updateState);  
+		};  
+	}, []);  
+
+	return isOnline;
+}
+
+function ChatIndicator() {
+	cosnt isOnline = useOnlineStatus();
+	// ...
+}
+
+```
+
+여기에, 외부 데이터 스토어 (이 경우, 브라우저 `navigator.onLine` API)를 구독하는 컴포넌트가 있다. 이 API는 서버에 존재하지 않기 때문에 (그래서 그것은 초기 HTML에 사용될 수 없다), 초기에 그 상태는 `true` 이다. 브라우저에서 데이터 스토어의 값이 변경될 때마다, 컴포넌트는 그것의 상태를 업데이트한다.
+
+비록 이것을 위해 Effect를 사용하는 것이 흔한 경우이더라도, React는 대신 선호되는 외부 저장소를 구독하기 위한 특별한 목적으로 제작된 Hook을 가지고 있다. Effect를 제거하고 [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore)를 호출하는 것으로 변경하라:
 
 
 ## Summary
@@ -603,4 +655,4 @@ React에서, 데이터는 부모 컴포넌트에서 그들의 자식으로 흐�
 
 - Effect를 통해 마운트 때마다 실행하는 것이 아닌 초기에 앱이 실행되었을 때 한 번 실행하고 싶다면 전역 플래그를 설정하여 실행 여부를 결정할 수 있다.
 
-- **React에서 데이터는 부모에서 자식으로 단방향으로 이동한다.** 만약 자식에서 부모의 데이터를 업데이트 한다면 이것은 데이터 흐름을 추적하기 어렵게 만들 것이다. 
+- **React에서 데이터는 부모에서 자식으로 단방향으로 이동한다.** 만약 자식에서 부모의 데이터를 업데이트 한다면 이것은 데이터 흐름을 추적하기 어렵게 만들 것이다. 데이터는 부모 컴포넌트에서 자식 컴포넌트로 흐르는 것이 이상적이다. 
