@@ -482,7 +482,108 @@ if (typeof window !== 'undefined') { // Check if we're running in the browser.
 최상위에 있는 코드는 당신의 컴포넌트가 임포트되었을 때 한 번 실행된다 - 심지어 랜더링이 끝나지 않더라도. 임의의 컴포넌트를 임포트 할 때 느려지거나 놀라운 동작을 피하기 위해, 이 패턴을 과다 사용하지 말아라. 앱 전역에 초기화 로직을 `App.js`와 같은 루트 컴포넌트 모듈 혹은 당신의 어플리케이션의 엔트리 포인트에 위치시켜라.
 
 ## Notifying parent components about state changes
+내부에 `true` 혹은 `false`일 수 있는 `isOn` 상태를 가진 `Toggle` 컴포넌트를 작성한다고 해보자. 그것을 토글하는 몇 가지 다른 방법들이 있다 (클릭 혹은 드래그를 통해). 당신은 `Toggle`의 내부 상태가 변경될 때마다 부모 컴포넌트에 알리기를 원한다. 그래서 당신은 `onChange` 이벤트를 노출시키고 Effect에서 그것을 호출한다:
 
+```jsx
+function Toggle({ onChange }) {
+	const [isOn, setIsOn] = useState(false);
+
+	// 🔴 Avoid: The onChange handler runs too late  
+	useEffect(() => {  
+		onChange(isOn);  
+	}, [isOn, onChange])
+
+	function handleClick() {
+		setIsOn(!isOn);
+	}
+
+	function handleDragEnd(e) {
+		if (isCloserToRightEdge(e)) {
+			setIsOn(true);
+		} else {
+			setIsOn(false);
+		}
+	}
+
+	// ... 
+}
+```
+
+처음과 같이, 이것은 이상적이지 않다. `Toggle`은 그것의 상태를 먼저 업데이트 하고 React는 화면을 업데이트 한다. 이후에 React는 부모 컴포넌트로부터 온 `onChange` 함수를 호출하는 Effect를 실행한다. 이제 부모 컴포넌트는 그것의 상태를 업데이트 할 것이고, 또 다른 랜더 패스를 시작할 것이다. 그것은 하나의 패스에서 모든 것을 실행하는 것이 더 낫다.
+
+Effect를 제거하고 대신에 동일한 이벤트 핸들러에서 두 컴포넌트의 상태를 업데이트 하라:
+
+```jsx
+function Toggle({ onChange }) {
+	const [isOn, setIsOn] = useState(false);
+
+	function updateToggle(nextIsOn) {
+		// ✅ Good: Perform all updates during the event that caused them
+		setIsOn(nextIsOn);
+		onChange(nextIsOn);
+	}
+
+	function handleClick() {
+		updateToggle(!isOn);
+	}
+
+	function handleDragEnd(e) {
+		if (isCloserToRightEdge(e)) {
+			updateToggle(true);
+		} else {
+			updateToggle(false);
+		}
+	}
+}
+```
+
+이 접근 방법을 가지고, `Toggle` 컴포넌트와 그것의 부모 컴포넌트는 이벤트 동안 그들의 상태를 업데이트 한다. React는 다른 컴포넌트로 부터 함께 [일괄 업데이트](https://react.dev/learn/queueing-a-series-of-state-updates) 한다, 그렇기에 오직 한 번의 랜더 패스가 존재할 것이다.
+
+당신은 또한 상태를 함께 제거할 수 있을 것이다, 그리고 대신에 부모 컴포넌트로 부터 `isOn`을 받는다:
+
+```jsx
+// ✅ Also good: the component is fully controlled by its parent
+function Toggle({ isOn, onChange }) {
+	function handleClick() {
+		onChange(!isOn);
+	}
+
+	function handleDragEnd(e) {
+		if (isCloserToRightEdge(e)) {
+			onChange(true);
+		} else {
+			onChange(false);
+		}
+	}
+
+	// ...
+}
+```
+
+["상태 끌어 올리기"](https://react.dev/learn/sharing-state-between-components)는 부모 컴포넌트가 부모 고유의 상태를 토글링 함으로써 `Toggle`을 완전히 제어하게 만든다. 이것은 부모 컴포넌트가 더 많은 로직을 포함해야만 한다는 것을 의미한다, 하지만 전반적으로 걱정할 상태는 줄어들 것이다. 두 가지 다른 상태 변수를 동기화하려고 할 때마다, 대신에 상태 끌어 올리기를 시도하라.
+
+## Passing data to the parent
+`Child` 컴포넌트는 일부 데이터를 패치하고 그것을 Effect에서 `Parent` 컴포넌트에 전달하고 있다:
+
+```jsx
+function Parent() {
+	const [data, setData] = useState(null);
+	//...
+	return <Child onFetched={setData} />;
+}
+
+function Child({ onFetched }) {
+	const data = useSomeAPI();
+	// 🔴 Avoid: Passing data to the parent in an Effect
+	useEffect(() => {
+		if (data) {
+			onFetched(data);
+		}
+	}, [onFetched, data]);
+}
+```
+
+React에서, 데이터는 부모 컴포넌트에서 그들의 자식으로 흐른다. 화면에서 무언가 문제가 발생하였을 때, 당신은 어떤 컴포넌트가 이상한 prop을 전달했는지 혹인 이상한 상태를 가지는지 찾을때까지 컴포넌트 체인을 올라가며 정보가 어디로부터 왔는지 추적할 수 있다.
 
 
 ## Summary
@@ -501,3 +602,5 @@ if (typeof window !== 'undefined') { // Check if we're running in the browser.
 - **이팩트 체인(Effect Chains)을 만드는 것은 굉장히 비효율적이다.** 가능한 랜더링 중에 가능한 것을 계산하고 이벤트 핸들러에서 상태를 조정하라.
 
 - Effect를 통해 마운트 때마다 실행하는 것이 아닌 초기에 앱이 실행되었을 때 한 번 실행하고 싶다면 전역 플래그를 설정하여 실행 여부를 결정할 수 있다.
+
+- **React에서 데이터는 부모에서 자식으로 단방향으로 이동한다.** 만약 자식에서 부모의 데이터를 업데이트 한다면 이것은 데이터 흐름을 추적하기 어렵게 만들 것이다. 
