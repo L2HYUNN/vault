@@ -85,3 +85,6 @@ JPA를 사용하면 Repository를 통해 DB에 실제로 접근할 수 있다. S
 Controller, Service, Repository에 대해서는 간략히 설명했다. 자세한 내용은 다음에 다루도록 하겠다.
 
 출처: [https://code-lab1.tistory.com/201](https://code-lab1.tistory.com/201) [코드 연구소:티스토리]
+
+
+[[DTO와 VO, DAO와 Repository]]
