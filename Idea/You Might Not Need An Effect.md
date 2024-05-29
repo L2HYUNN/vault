@@ -722,7 +722,47 @@ function SearchResults({ query }) {
 
 경쟁 상태를 다루는 것이 데이터 패칭을 구현할 때 유일한 어려움은 아니다. 당신은 응답을 캐싱하는 것 (그래서 유저가 뒤로가기 클릭을 할 수 있고 이전 화면을 즉시 보게된다), 서버에 데이터를 패치하는 방법 (그래서 처음 서버가 랜더하는 HTML이 스피너 대신에 패치된 컨텐츠를 포함하게), 그리고 네트워크 워터폴을 피하는 방법 (그래서 자식이 모든 부모를 기다리지 않고 데이터를 패치할 수 있게)을 생각하기를 원할지도 모른다.
 
-이러한 문제들은 React 뿐 아니라 어느 UI 라이브러리에도 적용된다. 그들을 해결하는 것은 진부하지 않다, 그것은 모던 프레임워크들이 Effect에서 데이터를 패칭하는 것이 아닌 조금 더 효율적인 데이터 패칭 메커니즘을 제공하는 이유이다.
+**이러한 문제들은 React 뿐 아니라 어느 UI 라이브러리에도 적용된다. 그들을 해결하는 것은 진부하지 않다, 그것은 모던 [프레임워크](https://react.dev/learn/start-a-new-react-project#production-grade-react-frameworks)들이 Effect에서 데이터를 패칭하는 것이 아닌 조금 더 효율적인 데이터 패칭 메커니즘을 제공하는 이유이다.**
+
+만약 당신이 프레임워크를 사용하지 않지만 (그리고 자체적으로 프레임워크를 만들고 싶지 않은 경우) 좀 더 인체공학적으로 Effect로 부터 데이터를 패치하고 싶다면, 아래의 예시와 같이 커스텀 훅 안으로 패칭 로직을 추출하는 것을 고려하라:
+
+```jsx
+function SearchResults({ query }) {
+	const [page, setPage] = useState(1);
+	const params = new URLSearchParams({ query, page });
+	const results = useData(`/api/search?${params}`);
+
+	function handleNextPageClick() {
+		setPage(page + 1);
+	}
+	// ...
+}
+
+function useData(url) {
+	const [data, setData] = useState(null);
+	useEffect(() => {
+		let ignore = false;
+		fetch(url)
+			.then(response => response.json())
+			.then(json => {
+				if (!ignore) {
+					setData(json);
+				}
+			});
+		return () => {
+			ignore = true;
+		};
+	}, [url]);
+	return data
+}
+```
+
+당신은 에러 핸들링을 위한 로직을 추가하거나 컨텐츠가 로딩 상태인지 아닌지 추적하는 일부 로직을 추가하기 원할지 모른다. 당신은 이와 같이 당신 스스로 Hook을 만들 거나 React 생태계에서 이미 사용 가능한 많은 솔루션 중 하나를 사용할 수 있다. **비록 이것 만으로는 프레임워크의 빌트인 패칭 매커니즘을 사용하는 것 만큼 효율적이지 않을지라도, 커스텀 훅에 데이터 패칭 로직을 옮기는 것은 이후에 효율적인 데이터 패칭 전략을 적용하기 쉽게 만들 것이다.**
+
+일반적으로, 당신이 Effect를 작성하려고 할 때마다, 위에 `useData` 처럼 목적에 맞게 만들어진 API를 사용하고 조금 더 선언적인 커스텀 훅 안에 기능의 일부를 추출할 수 있는 때를 주목하라. 당신의 컴포넌트에서 더 작은 `useEffect`의 호출은, 당신의 애플리케이션을 더 쉽게 유지할 수 있을 것이다.
+
+## Recap
+
 
 
 ## Summary
