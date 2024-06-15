@@ -73,6 +73,8 @@ Scrapes content from detailed posts in the National Tax Law Information System.
 npm run content
 ```
 
+The scraped content is saved in the `jsons/[taxLawMenuName]` folder.
+
 > [!warning]
 > To execute each tax law scraping function, a `[taxLawMenuName].txt` link file must exist in the `src` folder matching the name of each menu.
 > 
@@ -86,6 +88,8 @@ To set up and run the scheduler, use the following command:
 ```bash
 npm run start
 ```
+
+The scheduler is configured by default to run every Monday at 12:30 PM.
 
 ## Customization
 
@@ -152,12 +156,174 @@ scrape();
 Each content scraping function allows you to scrape contents from a specific menu. You can decide which content to scrape by adding or removing these functions.
 
 ### Scheduler
+The scheduler uses [node-schedule](https://github.com/node-schedule/node-schedule), allowing you to determine the scheduling time using the provided options below:
+
+### Cron-style Scheduling
+
+The cron format consists of:
+```
+*    *    *    *    *    *
+┬    ┬    ┬    ┬    ┬    ┬
+│    │    │    │    │    │
+│    │    │    │    │    └ day of week (0 - 7) (0 or 7 is Sun)
+│    │    │    │    └───── month (1 - 12)
+│    │    │    └────────── day of month (1 - 31)
+│    │    └─────────────── hour (0 - 23)
+│    └──────────────────── minute (0 - 59)
+└───────────────────────── second (0 - 59, OPTIONAL)
+```
+
+Examples with the cron format:
+
+```js
+const schedule = require('node-schedule');
+
+const job = schedule.scheduleJob('42 * * * *', function(){
+  console.log('The answer to life, the universe, and everything!');
+});
+```
+
+Execute a cron job when the minute is 42 (e.g. 19:42, 20:42, etc.).
+
+And:
+
+```js
+const job = schedule.scheduleJob('0 17 ? * 0,4-6', function(){
+  console.log('Today is recognized by Rebecca Black!');
+});
+```
+
+Execute a cron job every 5 Minutes = */5 * * * *
+
+You can also get when it is scheduled to run for every invocation of the job:
+```js
+const job = schedule.scheduleJob('0 1 * * *', function(fireDate){
+  console.log('This job was supposed to run at ' + fireDate + ', but actually ran at ' + new Date());
+});
+```
+This is useful when you need to check if there is a delay of the job invocation when the system is busy, or save a record of all invocations of a job for audit purpose.
+#### Unsupported Cron Features
+
+Currently, `W` (nearest weekday) and `L` (last day of month/week) are not supported. 
+Most other features supported by popular cron implementations should work just fine, 
+including `#` (nth weekday of the month).
+
+[cron-parser] is used to parse crontab instructions.
+
+### Date-based Scheduling
+
+Say you very specifically want a function to execute at 5:30am on December 21, 2012.
+Remember - in JavaScript - 0 - January, 11 - December.
+
+```js
+const schedule = require('node-schedule');
+const date = new Date(2012, 11, 21, 5, 30, 0);
+
+const job = schedule.scheduleJob(date, function(){
+  console.log('The world is going to end today.');
+});
+```
+
+To use current data in the future you can use binding:
+
+```js
+const schedule = require('node-schedule');
+const date = new Date(2012, 11, 21, 5, 30, 0);
+const x = 'Tada!';
+const job = schedule.scheduleJob(date, function(y){
+  console.log(y);
+}.bind(null,x));
+x = 'Changing Data';
+```
+This will log 'Tada!' when the scheduled Job runs, rather than 'Changing Data',
+which x changes to immediately after scheduling.
+
+### Recurrence Rule Scheduling
+
+You can build recurrence rules to specify when a job should recur. For instance,
+consider this rule, which executes the function every hour at 42 minutes after the hour:
+
+```js
+const schedule = require('node-schedule');
+
+const rule = new schedule.RecurrenceRule();
+rule.minute = 42;
+
+const job = schedule.scheduleJob(rule, function(){
+  console.log('The answer to life, the universe, and everything!');
+});
+```
+
+You can also use arrays to specify a list of acceptable values, and the `Range`
+object to specify a range of start and end values, with an optional step parameter.
+For instance, this will print a message on Thursday, Friday, Saturday, and Sunday at 5pm:
+
+```js
+const rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [0, new schedule.Range(4, 6)];
+rule.hour = 17;
+rule.minute = 0;
+
+const job = schedule.scheduleJob(rule, function(){
+  console.log('Today is recognized by Rebecca Black!');
+});
+```
+
+Timezones are also supported. Here is an example of executing at the start of every day in the UTC timezone.
+
+```js
+const rule = new schedule.RecurrenceRule();
+rule.hour = 0;
+rule.minute = 0;
+rule.tz = 'Etc/UTC';
+
+const job = schedule.scheduleJob(rule, function(){
+  console.log('A new day has begun in the UTC timezone!');
+});
+```
+
+A list of acceptable tz (timezone) values can be found at <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>
+
+#### RecurrenceRule properties
+
+- `second (0-59)`
+- `minute (0-59)`
+- `hour  (0-23)`
+- `date  (1-31)`
+- `month (0-11)`
+- `year`
+- `dayOfWeek (0-6) Starting with Sunday`
+- `tz`
 
 
+> **Note**: It's worth noting that the default value of a component of a recurrence rule is
+> `null` (except for second, which is 0 for familiarity with cron). *If we did not
+> explicitly set `minute` to 0 above, the message would have instead been logged at
+> 5:00pm, 5:01pm, 5:02pm, ..., 5:59pm.* Probably not what you want.
 
+#### Object Literal Syntax
 
+To make things a little easier, an object literal syntax is also supported, like
+in this example which will log a message every Sunday at 2:30pm:
 
-**Appendix**
+```js
+const job = schedule.scheduleJob({hour: 14, minute: 30, dayOfWeek: 0}, function(){
+  console.log('Time for tea!');
+});
+```
+
+#### Set StartTime and EndTime
+
+It will run after 5 seconds and stop after 10 seconds in this example.
+The ruledat supports the above.
+
+```js
+const startTime = new Date(Date.now() + 5000);
+const endTime = new Date(startTime.getTime() + 5000);
+const job = schedule.scheduleJob({ start: startTime, end: endTime, rule: '*/1 * * * * *' }, function(){
+  console.log('Time for tea!');
+});
+```
 
 ## References
 
