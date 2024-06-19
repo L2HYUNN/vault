@@ -4,3 +4,4 @@
 4. [[회원 목록, map, filter]]
 5. [[each]]
 6. [[다형성]]
+7. [[커링, curry, curryr]]
