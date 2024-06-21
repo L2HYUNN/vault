@@ -5,3 +5,4 @@
 5. [[each]]
 6. [[다형성]]
 7. [[커링, curry, curryr]]
+8. [[reduce]]
