@@ -1,3 +1,3 @@
 1. [[TypeScript Handbook]]
-1. [[Typescript Tip]]
-2. [[ts-node]]
+2. [[Typescript Tip]]
+3. [[ts-node]]

@@ -1,0 +1,1 @@
+원문: https://rinae.dev/posts/why-every-beginner-front-end-developer-should-know-publish-subscribe-pattern-kr/
