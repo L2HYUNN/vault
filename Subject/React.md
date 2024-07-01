@@ -76,6 +76,8 @@ export default function Form() {
 2. [[서버 컴포넌트]]
 3. [[React의 랜더링 프로세스를 통해 알아보는 리액트의 가치]]
 4. [[useForwardRef를 이용한 forwardRef 사용하기]]
+5. [[함수에 인자를 전달하는 방식]]
 
 ## Library
 - [[React Query]]
+- [[Zustand]]
