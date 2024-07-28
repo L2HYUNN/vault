@@ -78,6 +78,7 @@ export default function Form() {
 4. [[useForwardRef를 이용한 forwardRef 사용하기]]
 5. [[함수에 인자를 전달하는 방식]]
 6. [[페이지네이션에 대해서]]
+7. [[REST API를 통한 응답에서 최신 데이터를 유지하는 방법]]
 ## Library
 - [[React Query]]
 - [[Zustand]]
