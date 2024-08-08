@@ -107,14 +107,31 @@ my-service/
 > 1. import, require 하는 속도가 느려진다.
 > 2. 디렉토리의 크기가 너무 커진다
 >    
-> 이러한 문제를 해결하기 위해 호이스팅(Hoisting)이라는 특이한 방법을 사용하기도 하지마 
+> 이러한 문제를 해결하기 위해 [호이스팅(Hoisting)](https://toss.tech/article/lightning-talks-package-manager)이라는 특이한 방법을 사용하기도 하지만 최적화가 완전히 되는 것도 아니고 불안정하기 때문에 좋은 방법은 아니다
 
+2. pnpm Linker
+   ![[Pasted image 20240808152502.png]]
+   Pnpm은 퍼포먼스가 향상된(performant) npm이라고 볼 수 있다.
+   `node_modules`를 하나씩 쓰기 때문에 발생한 속도, 용량 문제를 개선했다.
+   
+   **How?**
+   기존의 `node_modules`는 그대로 사용한다.
+   대신 **Hard link** 방식을 통해 빠르고 용량을 최적화시킨다.
+   
+ > [!info] Hard Link
+> Hard link는 쉽게 말해 `alias`를 거는 것이다.
+> 
+> npm처럼 단순 복붙하는 게 아니라 alias가 생기면 거기로 바로 접근한다.
+> 따라서 의존성이 디스크에 하나만 설치된다.
+> 
+> 하지만 `node_modules` 디렉토리를 계속 돌면서 alias를 하나씩 걸어야 하기 때문에 뒤에서 소개할 PnP 방식에 비해 조금은 느릴 수 밖에 없다.
 
-
-
-
-
-
+3. PnP Linker
+   `node_modules` 없이 의존성을 처리하는 방법이 바로 PnP이다.
+   
+   PnP는 패키지를 import할 때 중요한 것은 **어떤** 파일에서 `import` 하는가, **무엇**을 `import` 하는가 라는 두 가지 관점에서 접근한다.
+   
+   **즉 npm과 pnpm처럼 node_modules를 순회하는 게 아닌 JavaScript 객체로 이것을 처리한다.**
 
 
 ### Software repository (= repos)
