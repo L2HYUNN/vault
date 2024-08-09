@@ -159,7 +159,20 @@ my-service/
 ]],
 ```
 
-이처럼 PnP는 의존성을 JavaScript Map을 이용하여 찾는다. 
+이처럼 PnP는 의존성을 JavaScript Map을 이용하여 찾는다.
+
+Yarn을 실행하는 순간 NodeJS 프로세스가 PnP Map을 전부 메모리에 로드하고 `import`와 `require` 문에서 이 Map을 참조한다.
+
+#### PnP vs Zero-install
+**PnP와 Zero-install은 별개의 개념이다.**
+
+PnP는 `node_modules` 없이 Javascript Map 객체를 활용해 의존성을 엄격하고 빠르게 관리하는 접근 방식이다.
+
+Zero-install은 PnP의 Javascript Map 객체와 Fetch된 의존성들까지 모두 Git에 넣어 버전을 관리하는 방식이다.
+
+![[Pasted image 20240809144253.png]]
+
+일관성 있는 개발 환경을 제공 한다는 점에서 장점이지만 모든 파일을 Git에 올리는 만큼 레포지토리 사이즈가 커지고, Git 관리가 어려워 진다는 단점이 있다.
 
 ### Software repository (= repos)
 
@@ -179,5 +192,6 @@ my-service/
 
 
 **Reference**
-[패키지 매니저(Package Manager)란?](https://aahc.tistory.com/14)
-[npm, yarn, pnplkm 비교해보기](https://yceffort.kr/2022/05/npm-vs-yarn-vs-pnpm)
+- [패키지 매니저(Package Manager)란?](https://aahc.tistory.com/14)
+- [npm, yarn, pnplkm 비교해보기](https://yceffort.kr/2022/05/npm-vs-yarn-vs-pnpm)
+- [패키지 매니저의 과거, 토스의 선택, 그리고 미래](https://toss.tech/article/lightning-talks-package-manager)
