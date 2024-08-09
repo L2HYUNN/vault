@@ -133,6 +133,33 @@ my-service/
    
    **즉 npm과 pnpm처럼 node_modules를 순회하는 게 아닌 JavaScript 객체로 이것을 처리한다.**
 
+```js
+["my-service", /* ... */ [{
+  // ./my-service에서...
+  "packageLocation": "./my-service/",
+  "packageDependencies": [
+    // React를 import 하면 18.2.0 버전을 제공하라.
+    ["react", "npm:18.2.0"]
+  ]
+]
+```
+
+```js
+/* react 패키지 중에서 */
+["react", [
+  /* npm:18.2.0 버전은 */
+  ["npm:18.2.0", {
+    /* 이 위치에 있고 */
+    "packageLocation": "./.yarn/cache/react-npm-18.2.0-98658812fc-a76d86ec97.zip/node_modules/react/",
+    /* 이 의존성들을 참조한다. */
+    "packageDependencies": [
+      ["loose-envify", "npm:1.4.0"]
+    ],
+  }]
+]],
+```
+
+이처럼 PnP는 의존성을 JavaScript Map을 이용하여 찾는다. 
 
 ### Software repository (= repos)
 
