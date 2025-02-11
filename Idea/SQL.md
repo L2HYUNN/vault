@@ -122,35 +122,4 @@ SELECT * FROM member_view;
 DELIMITER //
 CREATE PROCEDURE myProc()
 BRGIN
-	SELECT * FROM member WHERE member_name = '나훈아';
-	SELECT * FROM product WHERE product_name = '삼각김밥';
-END //
-DELIMITER;
-```
-
-프로시저 실행
-```sql
-CALL myproc();
-```
-
-## SQL 기본 문법
-SELECT의 가장 기본 형식은 `SELECT ~ FROM ~ WHERE`이다.
-
-DB를 지정해서 사용한다
-```SQL
-USE DB_NAME
-```
-
-```SQL
-// 모든 속성
-SELECT * FROM member WHERE mem_name = '블랙핑크';
-
-// 일부 속성
-SELECT * FROM mem_name, height, mem_number FROM member 
-
-// 조건
-SELECT * FROM mem_name, height, mem_number FROM member WHERE height >= 165 AND mem_number > 6;
-
-// 사이
-SELECT mem_name, height FROM member WHERE height BETWEEN 163 AND 165;
-```
+	SELECT * FROM member WHERE member_na
