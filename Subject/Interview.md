@@ -9,6 +9,11 @@
 - [[Event Delegation]]
 - [[Execution Context]]
 - [[AJAX]]
+
+### Algorithms
+- [[Complexity]]
+- [[Array]]
+- [[Linked List]]
 ### Network
 - [[REST API]]
 - [[Cookie vs Session]]
@@ -17,6 +22,7 @@
 ### Security
 - [[SOP]]
 - [[CDN]]
+
 
 ## Personal
 - [[페이타랩 2차 면접 대비 노트 (초안)]]
