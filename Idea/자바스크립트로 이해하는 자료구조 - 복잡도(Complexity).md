@@ -7,7 +7,7 @@
 
 ## 시간 복잡도 (Time Complexity)
 **시간 복잡도(Time Complexity)** 란 특정 크기의 입력에 대해 알고리즘이 **얼마나 오래 걸리는지** 를 의미합니다. 
-수행 시간은 실행 환경에 따라 다르게 측정되기 때문에 보통 필요한 연산의 횟수로 시간 복잡도를 평가합니다.
+수행 시간은 실행 환경에 따라 다르게 측정되기 때문에 보통 `필요한 연산의 횟수`로 시간 복잡도를 평가합니다.
 
 
 >[!info]
@@ -17,7 +17,7 @@
 > - 최악의 경우 (Worst Case): 최악의 입력 / 연산 횟수가 가장 많음
 > - 평균의 경우 (Average Case): 여러 경우의 수 / 총 연산 횟수를 시행 횟수로 나눈 경우
 >   
->   보통 알고리즘 분석 시 평균의 경우와 최악의 경우를 가장 많이 분석하며, 알고리즘이 복잡하여 평균을 구하기 어려운 경우 최악의 경우로 알고리즘 성능을 파악합니다.
+>   보통 알고리즘 분석 시 평균의 경우와 `최악의 경우`를 가장 많이 분석하며, 알고리즘이 복잡하여 평균을 구하기 어려운 경우 최악의 경우로 알고리즘 성능을 파악합니다.
 
 ## 공간 복잡도 (Space Complexity)
 **공간 복잡도(Space Complexity)** 란 특정 크기의 입력에 대해 알고리즘이 **얼마나 많은 메모리를 차지하는지** 를 의미합니다. 
@@ -48,9 +48,163 @@
 ### 자바스크립트로 이해하는 빅오 표기법(Big-O notation)
 
 > [!info]
-> 빅오 표기법을 보다 쉽게 이해하기 위해 우선 가장 많이 사용되는 시간 복잡도를 빅오 표기법으로 나타내는 방법을 학습합니다. 빅오 표기법에 대한 보다 자세한 설명이 필요하신 분들은 아래 Section을 먼저 확인해주시면 됩니다. 
+> 빅오 표기법을 보다 쉽게 이해하기 위해 우선 가장 많이 사용되는 시간 복잡도를 빅오 표기법으로 나타내는 방법을 설명합니다.
 
+#### O(1) - 상수 시간
 
+```js
+function getFirstElement(arr) {
+  return arr[0];
+}
+```
+
+배열에 인덱스로 접근하는 경우 입력 크기(n)과 상관 없이 항상 한 번에 연산하므로 시간 복잡도는 `O(1)` 으로 표현할 수 있습니다. 
+
+#### O(n) - 선형 시간
+
+```js
+function sumArray(arr) {
+  let total = 0;
+  
+  for (let i = 0; i < arr.length; i++) {
+    total += arr[i];
+  }
+  
+  return total;
+}
+```
+
+배열에 있는 각 요소의 합을 게산 하기 위해 배열의 크기(n) 만큼의 원소를 순회하므로 시간 복잡도는 `O(n)`으로 표현 할 수 있습니다.
+
+#### O(n²) - 이차 시간
+
+```js
+function hasDuplicate(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[i] === arr[j]) {
+      
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+```
+
+배열에 있는 중복을 확인하기 위해 배열의 크기(n) 만큼의 원소를 n-1 번 비교하므로 시간 복잡도는 `O(n * n) = O(n²)`로 표현할 수 있습니다.
+
+#### O(log n) - 로그 시간
+
+```js
+function binarySearch(arr, target) {
+  let left = 0;
+  let right = arr.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    
+    if (arr[mid] === target) {
+	    return mid;
+    }
+     
+    if (arr[mid] < target) {
+		left = mid + 1;
+    } else {
+	    right = mid - 1;
+    }
+  }
+  
+  return -1;
+}
+```
+
+배열에 존재하는 target을 찾기 위해 매 반복마다 배열의 크기(n)를 반씩 줄여가며 찾으므로 시간 복잡도는 n -> n/2 -> n/4로 `O(log n)`으로 표현할 수 있습니다.
+
+### 빅오 표기법의 연산 법칙 (Operation Rules In Big O)
+위의 간단한 예시를 통해 시간 복잡도를 빅오 표기법(Big-O notation)으로 표현하는 방법을 알아보았습니다.
+
+하지만 빅오 표기법은 단순히 코드에 있는 모든 연산을 더하거나 곱해서 표현하는 것이 아니라 특정한 규칙에 따라 복잡도를 보다 간결하게 표현합니다.
+
+#### 1. 계수 법칙 (Constant Multiple Rule)
+상수 배수는 빅오 표기에서 무시됩니다.
+
+> (상수 k > 0) `f(n)`이 `O(g(n))` 이면 `kf(n)`은 `O(g(n))` 이다.
+
+```js
+function printTwice(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    console.log(arr[i]); // O(n)
+  }
+  
+  for (let i = 0; i < arr.length; i++) {
+    console.log(arr[i]); // O(n)
+  }
+}
+```
+
+시간 복잡도는 `O(n + n) = O(2n)` 이지만 상수 배수는 무시되므로 실제 표기는 `O(n)`으로 표현 합니다.
+
+#### 2. 합의 법칙 (Sum Rule)
+함수가 더해지는 경우 덧셈으로 계산됩니다.
+
+> `f(n)`이 `O(h(n))` 이고, `g(n)`이 `O(p(n))`이라면 `f(n) + g(n)`은 `O(h(n) + p(n))` 이다.
+
+```js
+function process(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    console.log(arr[i]);  // O(n)
+  }
+  
+  for (let i = 0; i < arr.length ** 2; i++) {
+    console.log(i);       // O(n)
+  }
+}
+```
+
+ 시간 복잡도는 `O(n + n) = O(2n)`이지만 계수 법칙이 적용되므로 실제 표기는 `O(n)`으로 표현 합니다.
+
+#### 3. 곱의 법칙 (Product Rule)
+함수가 중첩되는 경우 곱으로 계산됩니다.
+
+> `f(n)`이 `O(h(n))` 이고, `g(n)`이 `O(p(n))`이라면 `f(n)g(n)`은 `O(h(n)p(n))` 이다.
+
+```js
+function nestedLoop(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr.length; j++) {
+      console.log(arr[i], arr[j]);
+    }
+  }
+}
+```
+
+시간 복잡도는 `O(n) * O(n) = O(n²)` 이므로 실제 표기는 `O(n²)`으로 표현 합니다.
+
+#### 4. 다항 법칙 (Polynomial Rule)
+다항식에서는 가장 큰 차수만 남깁니다.
+
+> f(n)이 k차 다항식이면 f(n)은 `O(nᵏ)`이다.
+
+```js
+function polynomial(arr) {
+  let sum = 0;
+  
+  for (let i = 0; i < arr.length; i++) {      
+    for (let j = 0; j < arr.length; j++) {    
+      sum += arr[i] * arr[j];
+    }
+  }
+  
+  return sum;
+}
+```
+
+`O(n² + n + 1)`이지만  O(n²)
+### 빅오 표기법 성능 비교
+
+![[스크린샷 2025-04-01 오후 4.41.26.png]]
 
 
 
